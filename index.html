@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuietSpace - Room Noise Display</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      font-family: "Avenir Next", "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      transition: background-color 0.4s ease, color 0.4s ease;
+      padding: 24px;
+      background-color: #7ed957;
+      color: #111;
+    }
+
+    .screen {
+      width: 100%;
+      min-height: calc(100vh - 48px);
+      max-width: 1200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+    }
+
+    .top-bar {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      padding-top: 8px;
+    }
+
+    .room-label {
+      font-size: clamp(1.1rem, 2vw, 1.6rem);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      opacity: 0.9;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.22);
+      backdrop-filter: blur(6px);
+    }
+
+    .main-panel {
+      width: min(900px, 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      padding: clamp(24px, 4vw, 42px);
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.16);
+      box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(8px);
+    }
+
+    .status {
+      font-size: clamp(4rem, 11vw, 8rem);
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
+    }
+
+    .thank-you {
+      font-size: clamp(1.2rem, 2.8vw, 2rem);
+      font-weight: 600;
+      max-width: 760px;
+      line-height: 1.35;
+    }
+
+    .level {
+      display: none;
+    }
+
+    .message {
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      max-width: 680px;
+      opacity: 0.9;
+      line-height: 1.5;
+    }
+
+    .bottom-row {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      padding-bottom: 8px;
+      margin-top: 24px;
+    }
+
+    .report-card {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 16px 20px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.18);
+      box-shadow:
+        0 14px 32px rgba(0, 0, 0, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+    }
+
+    .report-text-wrap {
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-width: 260px;
+    }
+
+    .report-title {
+      font-size: 1rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .report-subtext {
+      font-size: 0.95rem;
+      line-height: 1.4;
+      opacity: 0.9;
+    }
+
+    .qr-image {
+      width: clamp(92px, 11vw, 130px);
+      height: clamp(92px, 11vw, 130px);
+      object-fit: contain;
+      background: white;
+      border: 3px solid rgba(0, 0, 0, 0.15);
+      border-radius: 16px;
+      padding: 8px;
+      flex-shrink: 0;
+    }
+
+    button {
+      margin-top: 18px;
+      padding: 14px 24px;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      background-color: rgba(255, 255, 255, 0.95);
+      color: #1565c0;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+      transition: transform 0.15s ease, opacity 0.2s ease;
+    }
+
+    button:hover {
+      opacity: 0.96;
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .countdown-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 24px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.18);
+      box-shadow:
+        0 14px 32px rgba(0, 0, 0, 0.10),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+    }
+
+    .countdown-title {
+      font-size: 1rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .countdown-circle-wrap {
+      position: relative;
+      width: 180px;
+      height: 180px;
+    }
+
+    .countdown-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.35);
+      stroke-width: 8;
+    }
+
+    .countdown-progress {
+      fill: none;
+      stroke: #111;
+      stroke-width: 8;
+      stroke-linecap: round;
+      stroke-dasharray: 326.73;
+      stroke-dashoffset: 0;
+      transform: rotate(-90deg);
+      transform-origin: center;
+    }
+
+    .countdown-time {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .countdown-subtext {
+      font-size: 0.9rem;
+      text-align: center;
+      line-height: 1.4;
+      max-width: 300px;
+    }
+
+    @media (max-width: 700px) {
+      body {
+        padding: 16px;
+      }
+
+      .screen {
+        min-height: calc(100vh - 32px);
+      }
+
+      .main-panel {
+        border-radius: 22px;
+        gap: 14px;
+      }
+
+      .bottom-row {
+        margin-top: 18px;
+      }
+
+      .report-card,
+      .countdown-card {
+        width: 100%;
+        max-width: 420px;
+      }
+
+      .report-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 14px;
+      }
+
+      .report-text-wrap {
+        text-align: center;
+        max-width: none;
+      }
+
+      button {
+        width: 100%;
+        max-width: 280px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="screen">
+    <div class="top-bar">
+      <div class="room-label" id="roomLabel">Study Room 311</div>
+    </div>
+
+    <div class="main-panel">
+      <div class="status" id="statusText">QUIET</div>
+
+      <div class="thank-you" id="thankYouText">
+        Thank you for keeping this space quiet!
+      </div>
+
+      <div class="level" id="soundLevel">Current Sound Level: 0</div>
+
+      <div class="message" id="messageText">Noise level is acceptable.</div>
+
+      <button id="startButton" onclick="startMonitoring()">Start Microphone</button>
+    </div>
+
+    <div class="bottom-row">
+      <div class="report-card" id="reportCard">
+        <div class="report-text-wrap">
+          <div class="report-title">Need to report noise?</div>
+          <div class="report-subtext">
+            Scan the QR code to submit a room-specific noise report.
+          </div>
+        </div>
+        <img
+          src="{{ url_for('static', filename='testqrcode.png') }}"
+          alt="QR code"
+          class="qr-image"
+        />
+      </div>
+
+      <div class="countdown-card hidden" id="countdownCard">
+        <div class="countdown-title">Quiet Down to Reset:</div>
+
+        <div class="countdown-circle-wrap">
+          <svg width="180" height="180" viewBox="0 0 120 120">
+            <circle class="countdown-bg" cx="60" cy="60" r="52"></circle>
+            <circle class="countdown-progress" id="countdownProgress" cx="60" cy="60" r="52"></circle>
+          </svg>
+          <div class="countdown-time" id="countdownTimer">05:00</div>
+        </div>
+
+        <div class="countdown-subtext">
+          If noise continues, staff will be notified.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let audioContext;
+    let analyser;
+    let microphone;
+    let dataArray;
+    let isMonitoring = false;
+    let redLockActive = false;
+    let redLockEndsAt = null;
+    let latestDetectedState = "green";
+
+    const recentLevels = [];
+    const WINDOW_SIZE = 10;
+
+    const YELLOW_HOLD_MS = 3000;
+    const RED_HOLD_MS = 3500;
+
+    let currentState = "green";
+    let stateEnteredAt = Date.now();
+
+    const RED_TIME = 5 * 60 * 1000;
+    const radius = 52;
+    const circumference = 2 * Math.PI * radius;
+
+    let countdownStart = null;
+    let countdownFinished = false;
+
+    const statusText = document.getElementById("statusText");
+    const thankYouText = document.getElementById("thankYouText");
+    const soundLevelText = document.getElementById("soundLevel");
+    const messageText = document.getElementById("messageText");
+    const startButton = document.getElementById("startButton");
+
+    const reportCard = document.getElementById("reportCard");
+    const countdownCard = document.getElementById("countdownCard");
+    const countdownProgress = document.getElementById("countdownProgress");
+    const countdownTimer = document.getElementById("countdownTimer");
+
+    countdownProgress.style.strokeDasharray = `${circumference}`;
+    countdownProgress.style.strokeDashoffset = "0";
+
+    function formatTime(ms) {
+      const total = Math.max(0, Math.ceil(ms / 1000));
+      const m = Math.floor(total / 60);
+      const s = total % 60;
+      return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+
+    function updateCircle(remaining) {
+      const clamped = Math.max(0, remaining);
+      const percent = clamped / RED_TIME;
+      const offset = circumference * (1 - percent);
+
+      countdownProgress.style.strokeDashoffset = offset;
+      countdownTimer.textContent = formatTime(clamped);
+    }
+
+    function startCountdown() {
+  if (countdownStart !== null) return;
+
+  countdownStart = Date.now();
+  countdownFinished = false;
+
+  redLockActive = true;
+  redLockEndsAt = countdownStart + RED_TIME;
+
+  reportCard.classList.add("hidden");
+  countdownCard.classList.remove("hidden");
+  updateCircle(RED_TIME);
+}
+
+    function resetCountdown() {
+  countdownStart = null;
+  countdownFinished = false;
+
+  redLockActive = false;
+  redLockEndsAt = null;
+
+  reportCard.classList.remove("hidden");
+  countdownCard.classList.add("hidden");
+  updateCircle(RED_TIME);
+}
+
+    async function startMonitoring() {
+      if (isMonitoring) return;
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 2048;
+
+        microphone = audioContext.createMediaStreamSource(stream);
+        microphone.connect(analyser);
+
+        dataArray = new Uint8Array(analyser.fftSize);
+
+        isMonitoring = true;
+        startButton.textContent = "Microphone Active";
+        startButton.disabled = true;
+        startButton.style.opacity = "0.82";
+        startButton.style.cursor = "default";
+
+        updateSoundLevel();
+      } catch (error) {
+        console.error("Microphone access error:", error);
+        alert("Could not access microphone: " + error.name + " - " + error.message);
+      }
+    }
+
+    function updateSoundLevel() {
+      if (!analyser) return;
+
+      analyser.getByteTimeDomainData(dataArray);
+
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) {
+        const normalized = (dataArray[i] - 128) / 128;
+        sum += normalized * normalized;
+      }
+
+      const rms = Math.sqrt(sum / dataArray.length);
+      const rawLevel = rms * 500;
+
+      recentLevels.push(rawLevel);
+      if (recentLevels.length > WINDOW_SIZE) {
+        recentLevels.shift();
+      }
+
+      const averageLevel =
+        recentLevels.reduce((total, value) => total + value, 0) / recentLevels.length;
+
+      const level = Math.round(averageLevel);
+      soundLevelText.textContent = "Current Sound Level: " + level;
+
+      let targetState;
+if (level < 20) {
+  targetState = "green";
+} else if (level < 50) {
+  targetState = "yellow";
+} else {
+  targetState = "red";
+}
+
+latestDetectedState = targetState;
+
+      const now = Date.now();
+const timeInCurrentState = now - stateEnteredAt;
+
+if (redLockActive) {
+  const remaining = redLockEndsAt - now;
+  updateCircle(remaining);
+
+  if (remaining <= 0 && !countdownFinished) {
+    countdownFinished = true;
+
+    if (latestDetectedState === "red") {
+      console.log("SEND ALERT TO STAFF");
+    }
+
+    redLockActive = false;
+    countdownStart = null;
+    redLockEndsAt = null;
+
+    countdownCard.classList.add("hidden");
+    reportCard.classList.remove("hidden");
+
+    setState(latestDetectedState);
+  }
+} else {
+  if (isMoreSevere(targetState, currentState)) {
+    setState(targetState);
+  } else if (targetState !== currentState) {
+    const requiredHold =
+      currentState === "red"
+        ? RED_HOLD_MS
+        : currentState === "yellow"
+        ? YELLOW_HOLD_MS
+        : 0;
+
+    if (timeInCurrentState >= requiredHold) {
+      setState(targetState);
+    }
+  }
+}
+
+
+      requestAnimationFrame(updateSoundLevel);
+    }
+
+    function isMoreSevere(newState, oldState) {
+      const severity = {
+        green: 0,
+        yellow: 1,
+        red: 2
+      };
+      return severity[newState] > severity[oldState];
+    }
+
+    function setState(state) {
+      currentState = state;
+      stateEnteredAt = Date.now();
+
+      if (state === "green") {
+        resetCountdown();
+
+        document.body.style.backgroundColor = "#7ed957";
+        document.body.style.color = "#111";
+
+        statusText.textContent = "QUIET";
+        thankYouText.textContent = "Thank you for keeping this space quiet!";
+        messageText.textContent = "Noise level is acceptable.";
+      } else if (state === "yellow") {
+        resetCountdown();
+
+        document.body.style.backgroundColor = "#ffd966";
+        document.body.style.color = "#111";
+
+        statusText.textContent = "WARNING";
+        thankYouText.textContent = "Please lower your volume to maintain a quiet study space.";
+        messageText.textContent = "Noise level is rising.";
+      } else {
+        startCountdown();
+
+        document.body.style.backgroundColor = "#ff6b6b";
+        document.body.style.color = "#111";
+
+        statusText.textContent = "TOO LOUD";
+        thankYouText.textContent = "This room is too loud. Please be mindful of others.";
+        messageText.textContent = "Noise level is too high.";
+      }
+    }
+  </script>
+</body>
+</html>
