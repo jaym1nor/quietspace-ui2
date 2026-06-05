@@ -101,4 +101,4 @@ Then allow microphone access when prompted to begin live noise monitoring.
 - Aiden Rankin
 - Jayden Minor
 
-*Built as a Senior Project (COMP 495) — Spring 2026*
+> **Note:** This repository is a continuation of the original QuietSpace project developed in COMP 495 (Senior Project Design I) by Kanylia Reid, Aiden Rankin, and Jayden Minor (https://github.com/KanyliaR/quietspace-ui). Development in this repo is carried out independently for COMP 496 (Senior Project Design II) and may diverge from the direction taken by the original team.
