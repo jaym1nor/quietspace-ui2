@@ -282,6 +282,7 @@
       }
     }
   </style>
+  <script src="https://cdn.socketio.io/4.7.5/socketio.min.js"></script>
 </head>
 <body>
   <div class="screen">
@@ -345,6 +346,9 @@
     let redLockActive = false;
     let redLockEndsAt = null;
     let latestDetectedState = "green";
+
+   
+    const socket = io(); // Connect to the Python Flask-SocketIO server
 
     const recentLevels = [];
     const WINDOW_SIZE = 10;
@@ -493,7 +497,10 @@ if (redLockActive) {
     countdownFinished = true;
 
     if (latestDetectedState === "red") {
-      console.log("SEND ALERT TO STAFF");
+      socket.emit('noise_aleart',{ // Changed to check for noise and change status to too loud on the server.
+        room: "311",
+        status: "Too Loud!"
+      });
     }
 
     redLockActive = false;
