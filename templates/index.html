@@ -496,7 +496,7 @@ if (redLockActive) {
     countdownFinished = true;
 
     if (latestDetectedState === "red") {
-      socket.emit('noise_aleart',{ // Changed to check for noise and change status to too loud on the server.
+      socket.emit('noise_alert',{ // Changed to check for noise and change status to too loud on the server.
         room: "311", // This room will be changed later to make it dynamic based on the actual room.
         status: "Too Loud!"
       });
