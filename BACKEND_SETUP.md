@@ -1,0 +1,45 @@
+# Backend Setup (GitHub Codespaces)
+
+## Quick Setup (3 Commands)
+
+Open your Codespace terminal and run these in order:
+
+```bash
+# 1. Install everything
+pip install -r requirements.txt
+wget -O static/socket.io.min.js https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js
+
+# 2. Run the server
+python app.py
+```
+
+---
+
+## Test It
+
+- Dashboard: `http://localhost:5000/dashboard`
+- Report Page: `http://localhost:5000/report`
+
+Click "Start Microphone" → Make noise → Wait 5 minutes → Alert sends to server.
+
+**Faster test (skip the 5-minute wait):**
+
+In browser console (F12), type:
+```javascript
+socket.emit('noise_aleart', { room: "311", status: "Too Loud!" });
+```
+
+Check your terminal for:
+```
+Alert received: Room 311 is Too Loud!
+```
+
+---
+
+## Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| `ModuleNotFoundError` | `pip install Flask flask-cors flask-socketio eventlet python-socketio requests websocket-client` |
+| `io is not defined` | `wget -O static/socket.io.min.js https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js` |
+| Port 5000 in use | Change `port=5000` to `port=5001` in `app.py` |
