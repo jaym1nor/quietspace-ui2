@@ -347,7 +347,6 @@
     let redLockEndsAt = null;
     let latestDetectedState = "green";
 
-   
     const socket = io(); // Connect to the Python Flask-SocketIO server
 
     const recentLevels = [];
@@ -497,8 +496,8 @@ if (redLockActive) {
     countdownFinished = true;
 
     if (latestDetectedState === "red") {
-      socket.emit('noise_aleart',{ // Changed to check for noise and change status to too loud on the server.
-        room: "311",
+      socket.emit('noise_alert',{ // Changed to check for noise and change status to too loud on the server.
+        room: "311", // This room will be changed later to make it dynamic based on the actual room.
         status: "Too Loud!"
       });
     }
