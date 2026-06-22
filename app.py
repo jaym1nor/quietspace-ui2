@@ -36,7 +36,7 @@ def handle_disconnect():
     print('Client disconnected')
 
 #main event handler for noise alerts
-@socketio.on('noise_aleart') #meant to match misspelling on front-end to avoid error
+@socketio.on('noise_alert')
 def handle_noise_alert(data):
     print(f"Alert received: Room {data.get('room')} is {data.get('status')}")
     alert = {
