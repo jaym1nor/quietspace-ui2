@@ -349,6 +349,9 @@
 
     const socket = io(); // Connect to the Python Flask-SocketIO server
 
+    let green_Max_Threshold = 20; // Added new default variables for these noise thresholds.
+    let yellow_Max_Threshold = 50;
+
     const recentLevels = [];
     const WINDOW_SIZE = 10;
 
@@ -485,9 +488,9 @@
       soundLevelText.textContent = "Current Sound Level: " + level;
 
       let targetState;
-if (level < 20) {
+if (level < green_Max_Threshold) { // Changed from 20 to a variable that is able to be edited by staff through dashboard.
   targetState = "green";
-} else if (level < 50) {
+} else if (level < yellow_Max_Threshold) { // Change from 50 to a variable like above.
   targetState = "yellow";
 } else {
   targetState = "red";
@@ -584,6 +587,14 @@ if (redLockActive) {
         messageText.textContent = "Noise level is too high.";
       }
     }
+
+    socket.on('apply_new_settings', (data) =>{ // Page will now listen for setting updates from the staff dashboard page.
+      if (data.room === currentRoomNumber){ // MAKE SURE THE ROOM THE STAFF ARE LOOKING TO UPDATE IS THE EXACT SAME AS THE ROOM NUMBER OF A NOISE LEVEL PAGE!
+        green_Max_Threshold = data.greenMax; // Apply changes and notfify through console.
+        yellow_Max_Threshold = data.yellowMax;
+        console.log('Thresholds have been adjusted! Green Max: ${green_Max_Threshold}, Yellow Max: ${yellow_Max_Threshold}')
+      }
+    })
   </script>
 </body>
 </html>

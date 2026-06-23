@@ -14,7 +14,7 @@ socketio = SocketIO(app,cors_allowed_origins='*')
 #send confirmation that server is running
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('index.html') # Changed root to go to the room noise level page.
 
 @app.route('/dashboard')
 def dashboard():
@@ -64,6 +64,10 @@ def handle_report(data):
 
     socketio.emit('dashboard_new_report', report) # Small addition for the future dashboard to receive the report from the report page.
 
+@socketio.on('change_settings') # Event handler for staff changing setting for a specific room.
+def handle_change_settings(data):
+    print(f"[CONFIG CHANGE] An Admin updated thresholds for Room {data.get('room')}: Green Max={data.get('greenMax')}, Yellow Max={data.get('yellowMax')}")
+    socketio.emit('apply_new_settings', data) # Send this to the network so the correct room will receive this change in settings.
 
 #Run server
 if __name__=='__main__':

@@ -39,6 +39,20 @@
     </div>
   </div>
 
+  <div class="panel">
+  <h2>Room Threshold Controls ⚙️</h2>
+  <label>Target Room:</label>
+  <input type="text" id="targetRoom" value="311" style="width: 50px;"><br><br>
+  
+  <label>Green Max Level (Default 20):</label>
+  <input type="number" id="greenMax" value="20"><br><br>
+  
+  <label>Yellow Max Level (Default 50):</label>
+  <input type="number" id="yellowMax" value="50"><br><br>
+  
+  <button onclick="sendNewThresholds()">Apply New Thresholds</button>
+</div>
+
   <script>
     // Connect to the Python WebSocket server
     const socket = io();
@@ -79,6 +93,18 @@
       if(studentReportsList.innerHTML.includes('Waiting for')) studentReportsList.innerHTML = '';
       studentReportsList.prepend(li);
     });
+    
+    function sendNewThresholds() { // Function that will send new threshold values from staff dashboard to the room noise level page.
+        const thresholdData = { // Get correct room, green thresold and yellow threshold.
+        room: document.getElementById('targetRoom').value,
+        greenMax: parseInt(document.getElementById('greenMax').value),
+        yellowMax: parseInt(document.getElementById('yellowMax').value)
+        };
+        
+        // Emit the event to the Python server
+        socket.emit('change_settings', thresholdData);
+        alert(`Settings sent for Room ${thresholdData.room}!`);
+    }
   </script>
 </body>
 </html>
