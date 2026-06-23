@@ -27,12 +27,12 @@ Click "Start Microphone" → Make noise → Wait 30 seconds → Alert sends to s
 
 In browser console (F12), type:
 ```javascript
-socket.emit('noise_aleart', { room: "311", status: "Too Loud!" });
+socket.emit('noise_alert', { room: "404", status: "Too Loud!" });
 ```
 
 Check your terminal for:
 ```
-Alert received: Room 311 is Too Loud!
+Alert received: Room 404 is Too Loud!
 ```
 
 ---
