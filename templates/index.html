@@ -327,7 +327,7 @@
             <circle class="countdown-bg" cx="60" cy="60" r="52"></circle>
             <circle class="countdown-progress" id="countdownProgress" cx="60" cy="60" r="52"></circle>
           </svg>
-          <div class="countdown-time" id="countdownTimer">05:00</div>
+          <div class="countdown-time" id="countdownTimer">01:00</div>
         </div>
 
         <div class="countdown-subtext">
@@ -358,7 +358,7 @@
     let currentState = "green";
     let stateEnteredAt = Date.now();
 
-    const RED_TIME = 5 * 60 * 1000;
+    const RED_TIME = .5 * 60 * 1000; // Amount of time is measured in miliseconds for this timer, so change left most number to change amount of minutes.
     const radius = 52;
     const circumference = 2 * Math.PI * radius;
 
@@ -378,6 +378,16 @@
 
     countdownProgress.style.strokeDasharray = `${circumference}`;
     countdownProgress.style.strokeDashoffset = "0";
+
+    function getRoomFromURL(){ // Gets room number from url, made with Google Gemini's help.
+      const params = new URLSearchParams(window.location.search);
+      return params.get("room") || "311"; // Use params from url to get specific room number.
+    }
+
+    const currentRoomNumber = getRoomFromURL();
+    document.getElementById("roomLabel").textContent = `Study Room ${currentRoomNumber}`; // Now room number label should be the proper room's number, not just 311.
+    console.log("DEBUG: The current room is:", currentRoomNumber); // WILL REMOVE THIS LATER. JUST FOR TESTING!
+    // Enter http://localhost:5000/dashboard?room=xyz in url to see different rooom numbers, where xyz is some number.
 
     function formatTime(ms) {
       const total = Math.max(0, Math.ceil(ms / 1000));
@@ -497,7 +507,7 @@ if (redLockActive) {
 
     if (latestDetectedState === "red") {
       socket.emit('noise_alert',{ // Changed to check for noise and change status to too loud on the server.
-        room: "311", // This room will be changed later to make it dynamic based on the actual room.
+        room: currentRoomNumber, // This room will be changed later to make it dynamic based on the actual room.
         status: "Too Loud!"
       });
     }

@@ -17,10 +17,11 @@ python app.py
 
 ## Test It
 
-- Dashboard: `http://localhost:5000/dashboard`
+- Staff Dashboard: `http://localhost:5000/dashboard`
+- Room Noise Display :'http://127.0.0.1:5000/?room=404' (Room number can be changed to anything if needed. I.e, 404 can be 101, 20, 5, etc)
 - Report Page: `http://localhost:5000/report`
 
-Click "Start Microphone" → Make noise → Wait 5 minutes → Alert sends to server.
+Click "Start Microphone" → Make noise → Wait 30 seconds → Alert sends to server.
 
 **Faster test (skip the 5-minute wait):**
 

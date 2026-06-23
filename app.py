@@ -14,11 +14,11 @@ socketio = SocketIO(app,cors_allowed_origins='*')
 #send confirmation that server is running
 @app.route('/')
 def home():
-    return jsonify({"message": "Audio Detector Server is running!"})
+    return render_template('index.html')
 
 @app.route('/dashboard')
 def dashboard():
-    return render_template('index.html')
+    return render_template('dashboard.html')
 
 @app.route('/report')
 def report():
@@ -61,6 +61,8 @@ def handle_report(data):
         'timestamp': datetime.now().isoformat()
     } 
     emit('report_received', {'success':True, 'message': 'Report Submitted Successfully'})
+
+    socketio.emit('dashboard_new_report', report) # Small addition for the future dashboard to receive the report from the report page.
 
 
 #Run server
