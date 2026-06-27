@@ -23,7 +23,7 @@ python app.py
 
 Click "Start Microphone" → Make noise → Wait 30 seconds → Alert sends to server.
 
-**Faster test (skip the 5-minute wait):**
+**Faster test (skip the cooldown wait):**
 
 In browser console (F12), type:
 ```javascript
