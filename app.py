@@ -52,19 +52,6 @@ def handle_noise_alert(data):
     #broadcast to staff client
     socketio.emit('noise_update', alert)
 
-@socketio.on('room_ping') # Event handler for room pinging updates.
-def handle_room_ping(data):
-    # Log it locally if you want to verify, or leave it quiet to avoid terminal clutter
-    print(f"Heartbeat: Room {data.get('room')} is currently {data.get('status')} (Level: {data.get('level')})")
-
-    payload = { # Get this info down here...
-        'room': data.get('room'),
-        'level': data.get('level'),
-        'status': data.get('status'),
-        'timestamp': datetime.now().isoformat()
-    }
-    socketio.emit('live_room_ping', payload) #...then send to dashboard to update that page with the latest info.
-
 #event handler for manual student reports
 @socketio.on('submit_report')
 def handle_report(data):
@@ -82,10 +69,24 @@ def handle_report(data):
 
     socketio.emit('dashboard_new_report', report) # Small addition for the future dashboard to receive the report from the report page.
 
-@socketio.on('change_settings') # Event handler for staff changing setting for a specific room.
+@socketio.on('change_settings') # Event handler for staff changing settings for a specific room.
 def handle_change_settings(data):
-    print(f"[CONFIG CHANGE] An Admin updated thresholds for Room {data.get('room')}: Green Max={data.get('greenMax')}, Yellow Max={data.get('yellowMax')}")
+    print(f"[CONFIG CHANGE] An Admin updated thresholds for Room {data.get('room')}: Green Max={data.get('greenMax')}, Yellow Max={data.get('yellowMax')}, Cooldown Timer={data.get('countdownMins')}", )
     socketio.emit('apply_new_settings', data) # Send this to the network so the correct room will receive this change in settings.
+
+
+@socketio.on('room_ping') # Event handler for room pinging updates.
+def handle_room_ping(data):
+    # Log it locally if you want to verify, or leave it quiet to avoid terminal clutter
+    print(f"Heartbeat: Room {data.get('room')} is currently {data.get('status')} (Level: {data.get('level')})")
+
+    payload = { # Get this info down here...
+        'room': data.get('room'),
+        'level': data.get('level'),
+        'status': data.get('status'),
+        'timestamp': datetime.now().isoformat()
+    }
+    socketio.emit('live_room_ping', payload) #...then send to dashboard to update that page with the latest info.
 
 #Run server
 if __name__=='__main__':

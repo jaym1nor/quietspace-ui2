@@ -359,6 +359,10 @@ Made it work more as a template for many different rooms and to be able to apply
     let green_Max_Threshold = 20; // Added new default variables for these noise thresholds.
     let yellow_Max_Threshold = 50;
 
+    let RED_TIME = 1 * 60 * 1000; // Amount of time is measured in miliseconds for this timer, so change left most number to change amount of minutes.
+
+    let countdownSamples = []; // An array that will be used to help with the cooldown period's noise tracking.
+
     const recentLevels = [];
     const WINDOW_SIZE = 10;
 
@@ -367,8 +371,7 @@ Made it work more as a template for many different rooms and to be able to apply
 
     let currentState = "green";
     let stateEnteredAt = Date.now();
-
-    const RED_TIME = .5 * 60 * 1000; // Amount of time is measured in miliseconds for this timer, so change left most number to change amount of minutes.
+    
     const radius = 52;
     const circumference = 2 * Math.PI * radius;
 
@@ -417,6 +420,8 @@ Made it work more as a template for many different rooms and to be able to apply
 
     function startCountdown() {
   if (countdownStart !== null) return;
+
+  countdownSamples = []; // Empty the array as countdown starts anew.
 
   countdownStart = Date.now();
   countdownFinished = false;
@@ -513,6 +518,10 @@ if (now - lastPing >= ping_Interval_MS){ // Simple loop that happens every so of
     status: targetState.toUpperCase()
   });
   lastPing = now; // Now repeat for next time...
+
+  if (redLockActive){
+    countdownSamples.push(level);
+  }
 }
 
       
@@ -525,10 +534,18 @@ if (redLockActive) {
   if (remaining <= 0 && !countdownFinished) {
     countdownFinished = true;
 
-    if (latestDetectedState === "red") {
-      socket.emit('noise_alert',{ // Changed to check for noise and change status to too loud on the server.
-        room: currentRoomNumber, // This room will be changed later to make it dynamic based on the actual room.
-        status: "Too Loud!"
+    let totalVolumeAccumulated = 0; // Total of colume from samples during red cooldown.
+    for (let i = 0; i < countdownSamples.length; i++){
+      totalVolumeAccumulated += countdownSamples[i];
+    }
+
+    // Check just in case array is empty. (AVOIDS DIVIDING BY 0!)
+    const averageCountdownVolume = countdownSamples.length > 0 ? (totalVolumeAccumulated / countdownSamples.length) : 0;
+
+    if (averageCountdownVolume >= yellow_Max_Threshold){ // If average noise over the cooldown period was greater than the yellow threshold...
+      socket.emit('noise_alert', { //...red state is maintained, so send a noise alert.
+        room: currentRoomNumber,
+        status: "SUSTAINED LOUDNESS"
       });
     }
 
@@ -609,7 +626,12 @@ if (redLockActive) {
       if (data.room === currentRoomNumber){ // MAKE SURE THE ROOM THE STAFF ARE LOOKING TO UPDATE IS THE EXACT SAME AS THE ROOM NUMBER OF A NOISE LEVEL PAGE!
         green_Max_Threshold = data.greenMax; // Apply changes and notfify through console.
         yellow_Max_Threshold = data.yellowMax;
-        console.log('Thresholds have been adjusted! Green Max: ${green_Max_Threshold}, Yellow Max: ${yellow_Max_Threshold}')
+
+        if (data.countdownMins){ // If cooldown timer is sent, update it as well.
+          RED_TIME = data.countdownMins * 60 * 1000;
+          console.log('Red cooldown timer has been adjusted! Cooldown: ${data.countdownMins}');
+        }
+        console.log('Thresholds have been adjusted! Green Max: ${data.greenMax}, Yellow Max: ${data.yellowMax}');
       }
     })
   </script>
