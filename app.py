@@ -1,3 +1,8 @@
+# The server for Team TWO's QuietSpace project
+# Orignally by Jada Sowells.
+# Updated and edited by Makell Williams and Google Gemini.
+# Slight changes to update routing and handle more communication between dashboard and noise level pages.
+
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
@@ -46,6 +51,19 @@ def handle_noise_alert(data):
     }
     #broadcast to staff client
     socketio.emit('noise_update', alert)
+
+@socketio.on('room_ping') # Event handler for room pinging updates.
+def handle_room_ping(data):
+    # Log it locally if you want to verify, or leave it quiet to avoid terminal clutter
+    print(f"Heartbeat: Room {data.get('room')} is currently {data.get('status')} (Level: {data.get('level')})")
+
+    payload = { # Get this info down here...
+        'room': data.get('room'),
+        'level': data.get('level'),
+        'status': data.get('status'),
+        'timestamp': datetime.now().isoformat()
+    }
+    socketio.emit('live_room_ping', payload) #...then send to dashboard to update that page with the latest info.
 
 #event handler for manual student reports
 @socketio.on('submit_report')

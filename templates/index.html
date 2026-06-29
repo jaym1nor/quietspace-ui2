@@ -1,3 +1,7 @@
+<!--Not sure who originally made this page.
+Updated by Makell Williams with some slight help from Google Gemini.
+Made it work more as a template for many different rooms and to be able to apply setting changes from dashboard..-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -349,6 +353,9 @@
 
     const socket = io(); // Connect to the Python Flask-SocketIO server
 
+    let lastPing = Date.now(); // New pinger to the dashboard, allowing for real time status checks for those on the dashboard.
+    const ping_Interval_MS = 2500;
+
     let green_Max_Threshold = 20; // Added new default variables for these noise thresholds.
     let yellow_Max_Threshold = 50;
 
@@ -497,8 +504,18 @@ if (level < green_Max_Threshold) { // Changed from 20 to a variable that is able
 }
 
 latestDetectedState = targetState;
+const now = Date.now(); // Moved this from below the following if to above to fix a reference error.
 
-      const now = Date.now();
+if (now - lastPing >= ping_Interval_MS){ // Simple loop that happens every so often to send status updates to dashboard.
+  socket.emit('room_ping',{ // Sends the room number, noise level and status.
+    room: currentRoomNumber,
+    level: level,
+    status: targetState.toUpperCase()
+  });
+  lastPing = now; // Now repeat for next time...
+}
+
+      
 const timeInCurrentState = now - stateEnteredAt;
 
 if (redLockActive) {

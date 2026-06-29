@@ -1,110 +1,401 @@
-<!DOCTYPE html> <!--SIMPLE DASHBOARD MOCK UP BY GOOGLE GEMINI. WILL BE REPLACED WITH A PROPER DASHBOARD LATER, USED BY MAKELL FOR TESTING.-->
+<!--The staff dashboard for Team TWO's QuietSpace project.
+Original html and styling code by Cameron Henderson.
+Edited and updated to have functionality with other parts of the project by Makell Williams and Google Gemini.-->
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QuietSpace - Staff Dashboard (Mock)</title>
-  <script src="static\socket.io.min.js"></script>
-  <style>
-    body { font-family: sans-serif; background-color: #f0f4f8; padding: 20px; color: #333; }
-    h1 { color: #1f3b73; }
-    .container { display: flex; gap: 20px; margin-top: 20px; }
-    .panel { flex: 1; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-    h2 { border-bottom: 2px solid #edf2f7; padding-bottom: 10px; margin-top: 0; }
-    ul { list-style-type: none; padding: 0; }
-    li { padding: 10px; border-bottom: 1px solid #eee; font-size: 0.95rem; display: flex; justify-content: space-between; }
-    .alert-tag { background: #ff6b6b; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
-    .report-tag { background: #ffd966; color: #111; padding: 2px 8px; border-radius: 4px; font-weight: bold; }
-    .timestamp { color: #888; font-size: 0.8rem; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard</title>
+    <script src="/static/socket.io.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            background-color: lightgray;
+            height: 100vh;
+            color: black;
+            font-family: sans-serif;
+        }
+
+        .sidebar {
+            width: 240px;
+            background-color: darkblue;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .sidebar h2 {
+            font-size: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            color: lightblue;
+        }
+
+        .sidebar a {
+            color: white;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: block;
+            text-decoration: none;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background-color: royalblue;
+            color: white;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        header {
+            background-color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px gray;
+        }
+
+        .container {
+            padding: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px gray;
+            border-left: 5px solid lightblue;
+            transition: border-color 0.3s ease;
+        }
+
+        .card h3 {
+            font-size: 14px;
+            color: black;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            font-size: 14px;
+            margin-bottom: 4px;
+            color: #555;
+        }
+
+        .card p strong {
+            font-size: 16px;
+            color: black;
+        }
+
+        .data-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px gray;
+            margin-bottom: 30px;
+        }
+
+        .data-section h3 {
+            margin-bottom: 15px;
+            color: black;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            border-bottom: 1px solid black;
+        }
+
+        th {
+            background-color: white;
+            color: black;
+        }
+
+        /* The different status tags styles */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-green { background-color: #e8f5e9; color: darkgreen; }
+        .status-yellow { background-color: #fffde7; color: #b78103; }
+        .status-red { background-color: #ffebee; color: darkred; }
+
+        /* Threshold Form Styles */
+        .config-form input, .config-form button {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+        .config-form button {
+            background-color: royalblue;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .config-form button:hover { background-color: darkblue; }
+    </style>
 </head>
 <body>
 
-  <h1>QuietSpace Staff Dashboard 🛡️</h1>
-  <p>Monitoring real-time noise events and anonymous student reports.</p>
+    <nav class="sidebar">
+        <h2>Staff Portal</h2>
+        <a href="#" class="active">Room Status</a>
+        <a href="#">QuietScore Reports</a>
+        <a href="#">Student Reports</a>
+        <a href="#">Analytics</a>
+    </nav>
 
-  <div class="container">
-    <div class="panel">
-      <h2>Automated Room Alerts (Mics)</h2>
-      <ul id="micAlertsList">
-        <li><i>Waiting for hardware/mic thresholds...</i></li>
-      </ul>
+    <div class="main-content">
+        <header>
+            <h1>QuietSpace Dashboard</h1>
+        </header>
+
+        <main class="container">
+            
+            <!-- Dynamic Room Monitoring Cards -->
+            <!--These rooms will probably change when database is properly implemented-->
+            <section class="stats-grid">
+                <!-- Room 301 -->
+                <div class="card" id="card-301">
+                    <h3>Room 301</h3>
+                    <p>Current Level: <strong id="level-301">--</strong></p>
+                    <p>Last Updated: <span id="time-301">--:--:--</span></p>
+                    <p>Status: <span id="status-301" class="status-badge status-green">QUIET</span></p>
+                </div>
+                <!-- Room 302 -->
+                <div class="card" id="card-302">
+                    <h3>Room 302</h3>
+                    <p>Current Level: <strong id="level-302">--</strong></p>
+                    <p>Last Updated: <span id="time-302">--:--:--</span></p>
+                    <p>Status: <span id="status-302" class="status-badge status-green">QUIET</span></p>
+                </div>
+                <!-- Room 303 -->
+                <div class="card" id="card-303">
+                    <h3>Room 303</h3>
+                    <p>Current Level: <strong id="level-303">--</strong></p>
+                    <p>Last Updated: <span id="time-303">--:--:--</span></p>
+                    <p>Status: <span id="status-303" class="status-badge status-green">QUIET</span></p>
+                </div>
+                <!-- Room 311 -->
+                <div class="card" id="card-311">
+                    <h3>Room 311</h3>
+                    <p>Current Level: <strong id="level-311">--</strong></p>
+                    <p>Last Updated: <span id="time-311">--:--:--</span></p>
+                    <p>Status: <span id="status-311" class="status-badge status-green">QUIET</span></p>
+                </div>
+            </section>
+
+            <!-- Dynamic Admin Controls for staff (Threshold Management) -->
+            <section class="data-section config-form">
+                <h3>Room Threshold Controls ⚙️</h3>
+                <p> Room No. <input type="text" id="targetRoom" value="311" placeholder="Room No." style="width: 90px;"></p>
+                <p> Quiet/Green Threshold Limit <input type="number" id="greenMax" value="20" placeholder="Green Limit"></p>
+                <p>Slightly Loud/Yellow Threshold Limit<input type="number" id="yellowMax" value="50" placeholder="Yellow Limit"></p>
+                <button onclick="sendNewThresholds()">Apply Settings</button>
+            </section>
+
+            <!-- Live Automated Log -->
+            <section class="data-section">
+                <h3>QuietScore Automated History Log</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Room</th>
+                            <th>Status Alert</th>
+                            <th>Time Recorded</th>
+                        </tr>
+                    </thead>
+                    <tbody id="automatedLogBody">
+                        <tr id="auto-placeholder">
+                            <td colspan="3" style="text-align: center; color: #888; font-style: italic;">No automated signals received yet.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Live Student Forms Submission Log -->
+            <section class="data-section">
+                <h3>Student Submitted Reports</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Room</th>
+                            <th>Noise Classification</th>
+                            <th>Description / Additional Details</th>
+                            <th>Time Received</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentReportsBody">
+                        <tr id="student-placeholder">
+                            <td colspan="4" style="text-align: center; color: #888; font-style: italic;">Waiting for anonymous forms entries...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="data-section">
+                <h3>Analytics</h3>
+                <p style="color: #666; font-style: italic;">MongoDB system integration tracking coming soon!.</p>
+            </section>
+        </main>
     </div>
 
-    <div class="panel">
-      <h2>Student Submitted Reports</h2>
-      <ul id="studentReportsList">
-        <li><i>Waiting for student submissions...</i></li>
-      </ul>
-    </div>
-  </div>
+    <script>
+        // Connect to the operational WebSocket
+        const socket = io();
 
-  <div class="panel">
-  <h2>Room Threshold Controls ⚙️</h2>
-  <label>Target Room:</label>
-  <input type="text" id="targetRoom" value="311" style="width: 50px;"><br><br>
-  
-  <label>Green Max Level (Default 20):</label>
-  <input type="number" id="greenMax" value="20"><br><br>
-  
-  <label>Yellow Max Level (Default 50):</label>
-  <input type="number" id="yellowMax" value="50"><br><br>
-  
-  <button onclick="sendNewThresholds()">Apply New Thresholds</button>
-</div>
+        // Establish core reference DOM hooks
+        const automatedLogBody = document.getElementById('automatedLogBody');
+        const studentReportsBody = document.getElementById('studentReportsBody');
 
-  <script>
-    // Connect to the Python WebSocket server
-    const socket = io();
 
-    const micAlertsList = document.getElementById('micAlertsList');
-    const studentReportsList = document.getElementById('studentReportsList');
+        // 1. LISTEN FOR INTERCEPTED LIVE NOISE FROM MIC
+        socket.on('noise_update', (data) => {
+            const roomNum = data.room;
+            const statusVal = data.status; // e.g. "QUIET", "WARNING", "TOO LOUD"
+            const timestamp = new Date(data.timestamp).toLocaleTimeString();
 
-    // Clear placeholder text on first connection
-    socket.on('connect', () => {
-      console.log("Dashboard connected to server successfully!");
+            // Track target individual components
+            const levelEl = document.getElementById(`level-${roomNum}`);
+            const timeEl = document.getElementById(`time-${roomNum}`);
+            const statusEl = document.getElementById(`status-${roomNum}`);
+            const cardEl = document.getElementById(`card-${roomNum}`);
+
+            // Update UI card metrics dynamically if card exists
+            if (levelEl && timeEl && statusEl) {
+                timeEl.textContent = timestamp;
+                statusEl.textContent = statusVal;
+
+                // Adjust colors matching severity classes
+                statusEl.className = "status-badge"; // clear
+                if (statusVal === "QUIET") {
+                    statusEl.classList.add("status-green");
+                    if(cardEl) cardEl.style.borderLeftColor = "darkgreen";
+                    if(levelEl) levelEl.textContent = "Low";
+                } else if (statusVal === "WARNING") {
+                    statusEl.classList.add("status-yellow");
+                    if(cardEl) cardEl.style.borderLeftColor = "#ffd966";
+                    if(levelEl) levelEl.textContent = "Medium";
+                } else {
+                    statusEl.classList.add("status-red");
+                    if(cardEl) cardEl.style.borderLeftColor = "darkred";
+                    if(levelEl) levelEl.textContent = "HIGH";
+                }
+            }
+
+            // Append into history tracking log table
+            const placeholder = document.getElementById('auto-placeholder');
+            if (placeholder) placeholder.remove();
+
+            const tr = document.createElement('tr');
+            let stateClass = statusVal === "QUIET" ? "status-green" : (statusVal === "WARNING" ? "status-yellow" : "status-red");
+            tr.innerHTML = `
+                <td><b>Room ${roomNum}</b></td>
+                <td><span class="status-badge ${stateClass}">${statusVal}</span></td>
+                <td>${timestamp}</td>
+            `;
+            automatedLogBody.prepend(tr);
+        });
+
+        // 2. LISTEN FOR BROADCASTED STUDENT FORMS 
+        socket.on('dashboard_new_report', (data) => {
+            const placeholder = document.getElementById('student-placeholder');
+            if (placeholder) placeholder.remove();
+
+            const timestamp = new Date(data.timestamp).toLocaleTimeString();
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><b>Room ${data.room}</b></td>
+                <td><span class="status-badge status-yellow">${data.noiseType.replace('_', ' ')}</span></td>
+                <td><i>${data.details || 'No extended description added.'}</i> ${data.otherDetails ? `<br><small>(${data.otherDetails})</small>` : ''}</td>
+                <td>${timestamp}</td>
+            `;
+            studentReportsBody.prepend(tr);
+        });
+
+        // 3. EMIT THRESHOLD ADJUSTMENTS BACKEND, will maybe add other audio setting later.
+        function sendNewThresholds() {
+            const thresholdData = {
+                room: document.getElementById('targetRoom').value,
+                greenMax: parseInt(document.getElementById('greenMax').value),
+                yellowMax: parseInt(document.getElementById('yellowMax').value)
+            };
+
+            if (!thresholdData.room) {
+                alert("Please declare a targeted room number.");
+                return;
+            }
+            
+            socket.emit('change_settings', thresholdData);
+            alert(`Threshold configuration transmitted for Room ${thresholdData.room}!`);
+        }
+
+    // Listen for continuous live room updates
+    socket.on('live_room_ping', (data) => {
+        const roomNum = data.room;
+        const statusVal = data.status; // "GREEN", "YELLOW", or "RED"
+        const timestamp = new Date(data.timestamp).toLocaleTimeString();
+
+        // Grab the target elements on the specific room card
+        const levelEl = document.getElementById(`level-${roomNum}`);
+        const timeEl = document.getElementById(`time-${roomNum}`);
+        const statusEl = document.getElementById(`status-${roomNum}`);
+        const cardEl = document.getElementById(`card-${roomNum}`);
+
+        if (levelEl && timeEl && statusEl) {
+            // Update the card metrics instantly
+            levelEl.textContent = `${data.level} (Raw)`;
+            timeEl.textContent = timestamp;
+            
+            // Translate backend statuses to match the UI layout names
+            statusEl.textContent = statusVal === "GREEN" ? "QUIET" : (statusVal === "YELLOW" ? "WARNING" : "TOO LOUD");
+
+            // Dynamically shift colors to match the room display's state in real time
+            statusEl.className = "status-badge"; 
+            if (statusVal === "GREEN") {
+                statusEl.classList.add("status-green");
+                if(cardEl) cardEl.style.borderLeftColor = "darkgreen";
+            } else if (statusVal === "YELLOW") {
+                statusEl.classList.add("status-yellow");
+                if(cardEl) cardEl.style.borderLeftColor = "#ffd966";
+            } else {
+                statusEl.classList.add("status-red");
+                if(cardEl) cardEl.style.borderLeftColor = "darkred";
+            }
+        }
     });
-
-    // 1. Listen for Microphone Noise Alerts
-    socket.on('noise_update', (data) => {
-      // Create a new list item entry
-      const li = document.createElement('li');
-      li.innerHTML = `
-        <span>⚠️ <b>Room ${data.room}</b> is <span class="alert-tag">${data.status}</span></span>
-        <span class="timestamp">${new Date(data.timestamp).toLocaleTimeString()}</span>
-      `;
-      
-      // Remove placeholder text if it's there
-      if(micAlertsList.innerHTML.includes('Waiting for')) micAlertsList.innerHTML = '';
-      micAlertsList.prepend(li); // Put latest updates at the top
-    });
-
-    // 2. Listen for Anonymous Student Form Reports
-    socket.on('dashboard_new_report', (data) => {
-      const li = document.createElement('li');
-      li.innerHTML = `
-        <div>
-          <b>Room ${data.room}</b> - <span class="report-tag">${data.noiseType}</span>
-          <br><small style="color:#555">${data.details || 'No details provided.'}</small>
-        </div>
-        <span class="timestamp">${new Date(data.timestamp).toLocaleTimeString()}</span>
-      `;
-
-      if(studentReportsList.innerHTML.includes('Waiting for')) studentReportsList.innerHTML = '';
-      studentReportsList.prepend(li);
-    });
-    
-    function sendNewThresholds() { // Function that will send new threshold values from staff dashboard to the room noise level page.
-        const thresholdData = { // Get correct room, green thresold and yellow threshold.
-        room: document.getElementById('targetRoom').value,
-        greenMax: parseInt(document.getElementById('greenMax').value),
-        yellowMax: parseInt(document.getElementById('yellowMax').value)
-        };
-        
-        // Emit the event to the Python server
-        socket.emit('change_settings', thresholdData);
-        alert(`Settings sent for Room ${thresholdData.room}!`);
-    }
-  </script>
+    </script>
 </body>
 </html>
