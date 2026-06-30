@@ -351,10 +351,10 @@ Made it work more as a template for many different rooms and to be able to apply
     let redLockEndsAt = null;
     let latestDetectedState = "green";
 
-    const socket = io(); // Connect to the Python Flask-SocketIO server
+    const socket = io(); // Connect to the Python Flask-SocketIO server. Address can be put in parentheses for stuff if needed.
 
     let lastPing = Date.now(); // New pinger to the dashboard, allowing for real time status checks for those on the dashboard.
-    const ping_Interval_MS = 2500;
+    const ping_Interval_MS = 2500; // The interval of time between room page data being sent to dashboard.
 
     let green_Max_Threshold = 20; // Added new default variables for these noise thresholds.
     let yellow_Max_Threshold = 50;

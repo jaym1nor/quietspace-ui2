@@ -56,8 +56,8 @@ def handle_noise_alert(data):
 @socketio.on('submit_report')
 def handle_report(data):
     print(f"Report received from Room {data.get('room')}")
-    print(f"   Noise Type: {data.get('noiseType')}")
-    print(f"   Details: {data.get('details')}")
+    print(f"Noise Type: {data.get('noiseType')}")
+    print(f"Details: {data.get('details')}")
     report = {
         'room': data.get('room'),
         'noiseType': data.get('noiseType'),

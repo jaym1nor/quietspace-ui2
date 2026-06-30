@@ -299,12 +299,12 @@ Updated by Makell Williams with some slight help from Google Gemini to get use t
   </div>
 
   <script>
-    const socket = io(); // Connect to the Python Flask-SocketIO server
+    const socket = io(); // Connect to the Python Flask-SocketIO server. Address can be put in parentheses for stuff if needed.
 
-    function getRoomFromURL() {
+    function getRoomFromURL() { 
       const params = new URLSearchParams(window.location.search);
       const room = params.get("room");
-
+      // This part below may have to be removed later, probably when a database gets added.
       if (room === "301" || room === "302" || room === "303") {
         return room;
       }
