@@ -2,6 +2,8 @@
 
 ## Quick Setup (3 Commands)
 
+### Original instructions by Jada Sowells, slightly updated by Makell Williams
+
 Open your Codespace terminal and run these in order:
 
 ```bash
@@ -17,21 +19,22 @@ python app.py
 
 ## Test It
 
-- Dashboard: `http://localhost:5000/dashboard`
+- Staff Dashboard: `http://localhost:5000/dashboard`
+- Room Noise Display :'http://127.0.0.1:5000/?room=311' (Room number can be changed to any if needed. I.e, 311 can be 101, 20, 5, etc)
 - Report Page: `http://localhost:5000/report`
 
-Click "Start Microphone" → Make noise → Wait 5 minutes → Alert sends to server.
+Click "Start Microphone" → Make noise → Wait 30 seconds → Alert sends to server.
 
-**Faster test (skip the 5-minute wait):**
+**Faster test (skip the cooldown wait):**
 
 In browser console (F12), type:
 ```javascript
-socket.emit('noise_aleart', { room: "311", status: "Too Loud!" });
+socket.emit('noise_alert', { room: "404", status: "Too Loud!" });
 ```
 
 Check your terminal for:
 ```
-Alert received: Room 311 is Too Loud!
+Alert received: Room 404 is Too Loud!
 ```
 
 ---

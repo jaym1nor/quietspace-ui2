@@ -1,3 +1,7 @@
+<!--Not sure who originally made this page.
+Updated by Makell Williams with some slight help from Google Gemini.
+Made it work more as a template for many different rooms and to be able to apply setting changes from dashboard..-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -327,7 +331,7 @@
             <circle class="countdown-bg" cx="60" cy="60" r="52"></circle>
             <circle class="countdown-progress" id="countdownProgress" cx="60" cy="60" r="52"></circle>
           </svg>
-          <div class="countdown-time" id="countdownTimer">05:00</div>
+          <div class="countdown-time" id="countdownTimer">01:00</div>
         </div>
 
         <div class="countdown-subtext">
@@ -347,7 +351,17 @@
     let redLockEndsAt = null;
     let latestDetectedState = "green";
 
-    const socket = io(); // Connect to the Python Flask-SocketIO server
+    const socket = io(); // Connect to the Python Flask-SocketIO server. Address can be put in parentheses for stuff if needed.
+
+    let lastPing = Date.now(); // New pinger to the dashboard, allowing for real time status checks for those on the dashboard.
+    const ping_Interval_MS = 2500; // The interval of time between room page data being sent to dashboard.
+
+    let green_Max_Threshold = 20; // Added new default variables for these noise thresholds.
+    let yellow_Max_Threshold = 50;
+
+    let RED_TIME = 1 * 60 * 1000; // Amount of time is measured in miliseconds for this timer, so change left most number to change amount of minutes.
+
+    let countdownSamples = []; // An array that will be used to help with the cooldown period's noise tracking.
 
     const recentLevels = [];
     const WINDOW_SIZE = 10;
@@ -357,8 +371,7 @@
 
     let currentState = "green";
     let stateEnteredAt = Date.now();
-
-    const RED_TIME = 5 * 60 * 1000;
+    
     const radius = 52;
     const circumference = 2 * Math.PI * radius;
 
@@ -379,6 +392,16 @@
     countdownProgress.style.strokeDasharray = `${circumference}`;
     countdownProgress.style.strokeDashoffset = "0";
 
+    function getRoomFromURL(){ // Gets room number from url, made with Google Gemini's help.
+      const params = new URLSearchParams(window.location.search);
+      return params.get("room") || "311"; // Use params from url to get specific room number.
+    }
+
+    const currentRoomNumber = getRoomFromURL();
+    document.getElementById("roomLabel").textContent = `Study Room ${currentRoomNumber}`; // Now room number label should be the proper room's number, not just 311.
+    console.log("DEBUG: The current room is:", currentRoomNumber); // WILL REMOVE THIS LATER. JUST FOR TESTING!
+    // Enter http://localhost:5000/dashboard?room=xyz in url to see different rooom numbers, where xyz is some number.
+
     function formatTime(ms) {
       const total = Math.max(0, Math.ceil(ms / 1000));
       const m = Math.floor(total / 60);
@@ -397,6 +420,8 @@
 
     function startCountdown() {
   if (countdownStart !== null) return;
+
+  countdownSamples = []; // Empty the array as countdown starts anew.
 
   countdownStart = Date.now();
   countdownFinished = false;
@@ -475,17 +500,31 @@
       soundLevelText.textContent = "Current Sound Level: " + level;
 
       let targetState;
-if (level < 20) {
+if (level < green_Max_Threshold) { // Changed from 20 to a variable that is able to be edited by staff through dashboard.
   targetState = "green";
-} else if (level < 50) {
+} else if (level < yellow_Max_Threshold) { // Change from 50 to a variable like above.
   targetState = "yellow";
 } else {
   targetState = "red";
 }
 
 latestDetectedState = targetState;
+const now = Date.now(); // Moved this from below the following if to above to fix a reference error.
 
-      const now = Date.now();
+if (now - lastPing >= ping_Interval_MS){ // Simple loop that happens every so often to send status updates to dashboard.
+  socket.emit('room_ping',{ // Sends the room number, noise level and status.
+    room: currentRoomNumber,
+    level: level,
+    status: targetState.toUpperCase()
+  });
+  lastPing = now; // Now repeat for next time...
+
+  if (redLockActive){
+    countdownSamples.push(level);
+  }
+}
+
+      
 const timeInCurrentState = now - stateEnteredAt;
 
 if (redLockActive) {
@@ -495,10 +534,18 @@ if (redLockActive) {
   if (remaining <= 0 && !countdownFinished) {
     countdownFinished = true;
 
-    if (latestDetectedState === "red") {
-      socket.emit('noise_alert',{ // Changed to check for noise and change status to too loud on the server.
-        room: "311", // This room will be changed later to make it dynamic based on the actual room.
-        status: "Too Loud!"
+    let totalVolumeAccumulated = 0; // Total of colume from samples during red cooldown.
+    for (let i = 0; i < countdownSamples.length; i++){
+      totalVolumeAccumulated += countdownSamples[i];
+    }
+
+    // Check just in case array is empty. (AVOIDS DIVIDING BY 0!)
+    const averageCountdownVolume = countdownSamples.length > 0 ? (totalVolumeAccumulated / countdownSamples.length) : 0;
+
+    if (averageCountdownVolume >= yellow_Max_Threshold){ // If average noise over the cooldown period was greater than the yellow threshold...
+      socket.emit('noise_alert', { //...red state is maintained, so send a noise alert.
+        room: currentRoomNumber,
+        status: "SUSTAINED LOUDNESS"
       });
     }
 
@@ -574,6 +621,19 @@ if (redLockActive) {
         messageText.textContent = "Noise level is too high.";
       }
     }
+
+    socket.on('apply_new_settings', (data) =>{ // Page will now listen for setting updates from the staff dashboard page.
+      if (data.room === currentRoomNumber){ // MAKE SURE THE ROOM THE STAFF ARE LOOKING TO UPDATE IS THE EXACT SAME AS THE ROOM NUMBER OF A NOISE LEVEL PAGE!
+        green_Max_Threshold = data.greenMax; // Apply changes and notfify through console.
+        yellow_Max_Threshold = data.yellowMax;
+
+        if (data.countdownMins){ // If cooldown timer is sent, update it as well.
+          RED_TIME = data.countdownMins * 60 * 1000;
+          console.log('Red cooldown timer has been adjusted! Cooldown: ${data.countdownMins}');
+        }
+        console.log('Thresholds have been adjusted! Green Max: ${data.greenMax}, Yellow Max: ${data.yellowMax}');
+      }
+    })
   </script>
 </body>
 </html>
