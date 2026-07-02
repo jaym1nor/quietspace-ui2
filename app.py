@@ -119,7 +119,7 @@ def staff_dashboard_data():
         },
         'room_stats' : get_room_stats(),
         'recent_activity': get_recent_activity(),
-        'alerts': alerts_history[-50:]
+        'alerts': alerts_history[-50:],
         'reports': reports_history[-50:]
     })
 
