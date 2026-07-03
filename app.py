@@ -60,7 +60,7 @@ def handle_disconnect():
     log.info("Client disconnected: %s", request.sid)
 
 
-@socketio.on("noise_alert")  # misspelling kept to match the existing frontend
+@socketio.on("noise_alert")
 def handle_noise_alert(data):
     if not isinstance(data, dict):
         return
