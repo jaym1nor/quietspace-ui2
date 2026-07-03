@@ -37,11 +37,11 @@ def _find_room(room_identifier: str):
 # Page routes
 @app.route("/")
 def home():
-    return jsonify({"message": "Audio Detector Server is running!"})
+    return render_template("index.html")
 
 @app.route("/dashboard")
 def dashboard():
-    return render_template("index.html")
+    return render_template("dashboard.html")
 
 @app.route("/report")
 def report():
@@ -130,6 +130,33 @@ def handle_report(data):
     })
 
     emit("report_received", {"success": True, "message": "Report Submitted Successfully"})
+
+    # Forward report to the staff dashboard
+    socketio.emit("dashboard_new_report", {
+        "room":        room_identifier,
+        "noiseType":   data.get("noiseType"),
+        "details":     data.get("details"),
+        "otherDetails": data.get("otherNoiseDetails"),
+        "timestamp":   now.isoformat(),
+    })
+
+
+@socketio.on("change_settings")
+def handle_change_settings(data):
+    log.info("Config change: Room %s | greenMax=%s | yellowMax=%s | cooldown=%s",
+             data.get("room"), data.get("greenMax"), data.get("yellowMax"), data.get("countdownMins"))
+    socketio.emit("apply_new_settings", data)
+
+
+@socketio.on("room_ping")
+def handle_room_ping(data):
+    log.info("Heartbeat: Room %s is %s (Level: %s)", data.get("room"), data.get("status"), data.get("level"))
+    socketio.emit("live_room_ping", {
+        "room":      data.get("room"),
+        "level":     data.get("level"),
+        "status":    data.get("status"),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    })
 
 
 with app.app_context():
