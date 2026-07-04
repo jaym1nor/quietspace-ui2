@@ -222,8 +222,8 @@ Edited and updated to have functionality with other parts of the project by Make
             <section class="data-section config-form">
                 <h3>Room Settings Controls ⚙️</h3>
                 <p> Room No. <input type="text" id="targetRoom" value="311" placeholder="Room No." style="width: 90px;"></p>
-                <p> Quiet/Green Threshold Limit <input type="number" id="greenMax" value="20" min="10" placeholder="Green Limit"></p>
-                <p> Slightly Loud/Yellow Threshold Limit <input type="number" id="yellowMax" value="50" min="15" placeholder="Yellow Limit"></p>
+                <p> Quiet/Green Threshold Limit (Decibels): <input type="number" id="greenMax" value="20" min="10" placeholder="Green Limit"></p>
+                <p> Slightly Loud/Yellow Threshold Limit (Decibels): <input type="number" id="yellowMax" value="50" min="15" placeholder="Yellow Limit"></p>
                 <label for="countdownMins">Red Timer (Mins):</label>
                 <input type="number" id="countdownMins" value="5" min=".5" max="10" style="width: 70px;">
                 <button onclick="sendNewSettings()">Apply Settings</button>
