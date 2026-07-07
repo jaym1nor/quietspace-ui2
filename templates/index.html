@@ -356,12 +356,16 @@ Made it work more as a template for many different rooms and to be able to apply
     let lastPing = Date.now(); // New pinger to the dashboard, allowing for real time status checks for those on the dashboard.
     const ping_Interval_MS = 2500; // The interval of time between room page data being sent to dashboard.
 
-    let green_Max_Threshold = 20; // Added new default variables for these noise thresholds.
-    let yellow_Max_Threshold = 50;
+    let GREEN_MAX_THRESHOLD = 20; // Added new default variables for these noise thresholds.
+    let YELLOW_MAX_THRESHOLD = 50;
 
     let RED_TIME = 1 * 60 * 1000; // Amount of time is measured in miliseconds for this timer, so change left most number to change amount of minutes.
 
     let countdownSamples = []; // An array that will be used to help with the cooldown period's noise tracking.
+
+    let MIC_SENSITIVITY = 1.0; // Default/embedded mic sensitivity.
+    let ACTIVE_NOISE_CANCELLATION = true; // Default/embedded noise cancellation option.
+    let currentStream = null; // Used to track microphone data stream so it can be restarted if settings change.
 
     const recentLevels = [];
     const WINDOW_SIZE = 10;
@@ -450,7 +454,14 @@ Made it work more as a template for many different rooms and to be able to apply
       if (isMonitoring) return;
 
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          audio:{ // Adjusted to add the noise suppression and echo cancelling features for the mic. Now bound to whether the noise cancellation is active or not through the dashboard.
+            noiseSuppression: ACTIVE_NOISE_CANCELLATION,
+            echoCancellation: ACTIVE_NOISE_CANCELLATION
+          }
+        });
+
+        currentStream = stream // Save mic's current stream.
 
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         analyser = audioContext.createAnalyser();
@@ -474,6 +485,14 @@ Made it work more as a template for many different rooms and to be able to apply
       }
     }
 
+    async function restartMicrophoneStream(){ // New function that resets the mic hardware to allow for noise suppression to be applied more easily.
+      if (currentStream){
+        currentStream.getTracks().forEach(track => track.stop()); // Stop the mic from detecting audio...
+        isMonitoring = false;
+        await startMonitoring() //...Then start the mic again, this time with the new noise suppression settings applied.
+      }
+    }
+
     function updateSoundLevel() {
       if (!analyser) return;
 
@@ -486,7 +505,7 @@ Made it work more as a template for many different rooms and to be able to apply
       }
 
       const rms = Math.sqrt(sum / dataArray.length);
-      const rawLevel = rms * 500;
+      const rawLevel = rms * 500 * MIC_SENSITIVITY; // Edited to allow for mic sensitivity to change the actual settings on a room page. Value is sent from dashboard.
 
       recentLevels.push(rawLevel);
       if (recentLevels.length > WINDOW_SIZE) {
@@ -500,9 +519,9 @@ Made it work more as a template for many different rooms and to be able to apply
       soundLevelText.textContent = "Current Sound Level: " + level;
 
       let targetState;
-if (level < green_Max_Threshold) { // Changed from 20 to a variable that is able to be edited by staff through dashboard.
+if (level < GREEN_MAX_THRESHOLD) { // Changed from 20 to a variable that is able to be edited by staff through dashboard.
   targetState = "green";
-} else if (level < yellow_Max_Threshold) { // Change from 50 to a variable like above.
+} else if (level < YELLOW_MAX_THRESHOLD) { // Change from 50 to a variable like above.
   targetState = "yellow";
 } else {
   targetState = "red";
@@ -542,7 +561,7 @@ if (redLockActive) {
     // Check just in case array is empty. (AVOIDS DIVIDING BY 0!)
     const averageCountdownVolume = countdownSamples.length > 0 ? (totalVolumeAccumulated / countdownSamples.length) : 0;
 
-    if (averageCountdownVolume >= yellow_Max_Threshold){ // If average noise over the cooldown period was greater than the yellow threshold...
+    if (averageCountdownVolume >= YELLOW_MAX_THRESHOLD){ // If average noise over the cooldown period was greater than the yellow threshold...
       socket.emit('noise_alert', { //...red state is maintained, so send a noise alert.
         room: currentRoomNumber,
         status: "SUSTAINED LOUDNESS"
@@ -624,13 +643,22 @@ if (redLockActive) {
 
     socket.on('apply_new_settings', (data) =>{ // Page will now listen for setting updates from the staff dashboard page.
       if (data.room === currentRoomNumber){ // MAKE SURE THE ROOM THE STAFF ARE LOOKING TO UPDATE IS THE EXACT SAME AS THE ROOM NUMBER OF A NOISE LEVEL PAGE!
-        green_Max_Threshold = data.greenMax; // Apply changes and notfify through console.
-        yellow_Max_Threshold = data.yellowMax;
+        GREEN_MAX_THRESHOLD = data.greenMax; // Apply changes and notfify through console.
+        YELLOW_MAX_THRESHOLD = data.yellowMax;
 
         if (data.countdownMins){ // If cooldown timer is sent, update it as well.
           RED_TIME = data.countdownMins * 60 * 1000;
           console.log('Red cooldown timer has been adjusted! Cooldown: ${data.countdownMins}');
         }
+
+        MIC_SENSITIVITY = data.micSensitivity || 1.0; // Update mic sensitivity or default it to 1.
+
+        if (data.noiseCancellation !== undefined && data.noiseCancellation !== ACTIVE_NOISE_CANCELLATION){
+          ACTIVE_NOISE_CANCELLATION = data.noiseCancellation;
+          restartMicrophoneStream();
+          console.log(`🎯 Mic settings updated! Boost: ${MIC_SENSITIVITY}x, Noise Cancel: ${ACTIVE_NOISE_CANCELLATION}`);
+        }
+
         console.log('Thresholds have been adjusted! Green Max: ${data.greenMax}, Yellow Max: ${data.yellowMax}');
       }
     })

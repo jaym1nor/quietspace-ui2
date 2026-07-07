@@ -71,7 +71,7 @@ def handle_report(data):
 
 @socketio.on('change_settings') # Event handler for staff changing settings for a specific room.
 def handle_change_settings(data):
-    print(f"[CONFIG CHANGE] An Admin updated thresholds for Room {data.get('room')}: Green Max={data.get('greenMax')}, Yellow Max={data.get('yellowMax')}, Cooldown Timer={data.get('countdownMins')}", )
+    print(f"[CONFIG CHANGE] An Admin updated thresholds for Room {data.get('room')}: Green Max={data.get('greenMax')}, Yellow Max={data.get('yellowMax')}, Cooldown Timer={data.get('countdownMins')}, Mic Sensitivity = {data.get('micSensitivity')}, Noise cancelation = {data.get('noiseCancelation')}", )
     socketio.emit('apply_new_settings', data) # Send this to the network so the correct room will receive this change in settings.
 
 
