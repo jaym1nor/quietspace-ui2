@@ -170,8 +170,9 @@ def handle_report(data):
 
 @socketio.on("change_settings")
 def handle_change_settings(data):
-    log.info("Config change: Room %s | greenMax=%s | yellowMax=%s | cooldown=%s",
-             data.get("room"), data.get("greenMax"), data.get("yellowMax"), data.get("countdownMins"))
+    log.info("Config change: Room %s | greenMax=%s | yellowMax=%s | cooldown=%s | micSensitivity=%s | noiseCancelation=%s",
+         data.get("room"), data.get("greenMax"), data.get("yellowMax"),
+         data.get("countdownMins"), data.get("micSensitivity"), data.get("noiseCancelation"))
     socketio.emit("apply_new_settings", data)
 
 
