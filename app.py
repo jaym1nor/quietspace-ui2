@@ -47,6 +47,33 @@ def dashboard():
 def report():
     return render_template("reportingPage.html")
 
+# REST endpoints
+@app.route("/api/staff/dashboard-data")
+def staff_dashboard_data():
+    """Returns recent alerts and reports from MongoDB for the staff dashboard."""
+    recent = list(
+        noise_reports()
+        .find({}, {"_id": 0, "room_name": 1, "source": 1, "status": 1,
+                   "noise_type": 1, "severity": 1, "reported_at": 1})
+        .sort("reported_at", -1)
+        .limit(50)
+    )
+    for r in recent:
+        r["reported_at"] = r["reported_at"].isoformat()
+ 
+    total_alerts  = noise_reports().count_documents({"source": "alert"})
+    total_reports = noise_reports().count_documents({"source": "report"})
+ 
+    return jsonify({
+        "summary": {
+            "total_alerts":    total_alerts,
+            "total_reports":   total_reports,
+            "total_incidents": total_alerts + total_reports,
+            "last_updated":    datetime.now(timezone.utc).isoformat(),
+        },
+        "recent_activity": recent,
+    })
+
 
 # Socket.IO events
 @socketio.on("connect")
