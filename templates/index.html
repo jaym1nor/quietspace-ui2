@@ -364,7 +364,7 @@ Made it work more as a template for many different rooms and to be able to apply
     let countdownSamples = []; // An array that will be used to help with the cooldown period's noise tracking.
 
     let MIC_SENSITIVITY = 1.0; // Default/embedded mic sensitivity.
-    let ACTIVE_NOISE_CANCELLATION = true; // Default/embedded noise cancellation option.
+    let ACTIVE_NOISE_CANCELLATION = false; // Default/embedded noise cancellation option.
     let currentStream = null; // Used to track microphone data stream so it can be restarted if settings change.
 
     const recentLevels = [];
@@ -457,7 +457,8 @@ Made it work more as a template for many different rooms and to be able to apply
         const stream = await navigator.mediaDevices.getUserMedia({ 
           audio:{ // Adjusted to add the noise suppression and echo cancelling features for the mic. Now bound to whether the noise cancellation is active or not through the dashboard.
             noiseSuppression: ACTIVE_NOISE_CANCELLATION,
-            echoCancellation: ACTIVE_NOISE_CANCELLATION
+            echoCancellation: ACTIVE_NOISE_CANCELLATION,
+            autoGainControl: ACTIVE_NOISE_CANCELLATION
           }
         });
 
