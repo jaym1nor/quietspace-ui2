@@ -50,7 +50,7 @@ def report():
 # REST endpoints
 @app.route("/api/staff/dashboard-data")
 def staff_dashboard_data():
-    """Returns recent alerts and reports from MongoDB for the staff dashboard."""
+    # Returns recent alerts and reports from MongoDB for the staff dashboard."""
     recent = list(
         noise_reports()
         .find({}, {"_id": 0, "room_name": 1, "source": 1, "status": 1,
