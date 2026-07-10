@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            background-color: lightgray;
+            height: 100vh;
+            color: black;
+        }
+
+        .sidebar {
+            width: 240px;
+            background-color: darkblue;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .sidebar h2 {
+            font-size: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+            color: lightblue;
+        }
+
+        .sidebar a {
+            color: white;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: block;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background-color: royalblue;
+            color: white;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        header {
+            background-color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px gray;
+        }
+
+        .container {
+            padding: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px gray;
+            border-left: 5px solid lightblue;
+        }
+
+        .card h3 {
+            font-size: 14px;
+            color: black;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            font-size: 18px;
+            font-weight: bold;
+            color: black;
+        }
+
+        .data-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px gray;
+        }
+
+        .data-section h3 {
+            margin-bottom: 15px;
+            color: black;
+        }
+        
+        section {
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            border-bottom: 1px solid black;
+        }
+
+        th {
+            background-color: white;
+            color: black;
+        }
+
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-color{
+            color: darkgreen;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <h2>Staff Portal</h2>
+        <a href="dummy">Room Status</a>
+        <a href="dummy">QuietScore Reports</a>
+        <a href="dummy">Student Reports</a>
+        <a href="dummy">Analytics</a>
+    </nav>
+
+    <div class="main-content">
+        <header>
+            <h1>QuietSpace</h1>
+        </header>
+
+        <main class="container">
+            <section class="stats-grid">
+                <div class="card">
+                    <h3>Room 1</h3>
+                    <p>Current Level: ## db </p>
+                    <p>Last Updated: ##:##:##</p>
+                    <p><span class="status-color">Status Color</span></p>
+                </div>
+                <div class="card">
+                    <h3>Room 2</h3>
+                    <p>Current Level: ## db </p>
+                    <p>Last Updated: ##:##:##</p>
+                    <p><span class="status-color">Status Color</span></p>
+                </div>
+                <div class="card">
+                    <h3>Room 3</h3>
+                    <p>Current Level: ## db </p>
+                    <p>Last Updated: ##:##:##</p>
+                    <p><span class="status-color">Status Color</span></p>
+                </div>
+                <div class="card">
+                    <h3>Room 4</h3>
+                    <p>Current Level: ## db </p>
+                    <p>Last Updated: ##:##:##</p>
+                    <p><span class="status-color">Status Color</span></p>
+                </div>
+            </section>
+
+            <section class="data-section">
+                <h3>QuietScore Reports</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Room</th>
+                            <th>Status</th>
+                            <th>Timer</th>
+                            <th>Opened</th>
+                            <th>Escalation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Room 1</td>
+                            <td><span class="status-color">Status Color</span></td>
+                            <td>Time Remaining</td>
+                            <td>##:##:##</td>
+                            <td>||</td>
+                        </tr>
+                        <tr>
+                            <td>Room 2</td>
+                            <td><span class="status-color">Status Color</span></td>
+                            <td>Time Remaining</td>
+                            <td>##:##:##</td>
+                            <td>|||</td>      
+                        </tr>
+                        <tr>
+                            <td>Room 3</td>
+                            <td><span class="status-color">Status Color</span></td>
+                            <td>Time Remaining</td>
+                            <td>##:##:##</td>
+                            <td>|</td>      
+                        </tr>
+                        <tr>
+                            <td>Room 4</td>
+                            <td><span class="status-color">Status Color</span></td>
+                            <td>Time Remaining</td>
+                            <td>##:##:##</td>
+                            <td>||||</td>      
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="data-section">
+                <h3>Student Reports</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Room</th>
+                            <th>Status</th>
+                            <th>Timer</th>
+                            <th>Opened</th>
+                            <th>Escalation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Room 1</td>
+                            <td><span class="status-color">Status Color</span></td>
+                            <td>Time Remaining</td>
+                            <td>##:##:##</td>
+                            <td>||</td>
+                        </tr>
+                        <tr>
+                            <td>Room 2</td>
+                            <td><span class="status-color">Status Color</span></td>
+                            <td>Time Remaining</td>
+                            <td>##:##:##</td>
+                            <td>|||</td>      
+                        </tr>
+                        <tr>
+                            <td>Room 3</td>
+                            <td><span class="status-color">Status Color</span></td>
+                            <td>Time Remaining</td>
+                            <td>##:##:##</td>
+                            <td>|</td>      
+                        </tr>
+                        <tr>
+                            <td>Room 4</td>
+                            <td><span class="status-color">Status Color</span></td>
+                            <td>Time Remaining</td>
+                            <td>##:##:##</td>
+                            <td>||||</td>      
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="data-section">
+                <h3>Analytics</h3>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

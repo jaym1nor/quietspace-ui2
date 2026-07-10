@@ -1,6 +1,7 @@
-import os
-import logging
-from datetime import datetime, timezone
+# The server for Team TWO's QuietSpace project
+# Orignally by Jada Sowells.
+# Updated and edited by Makell Williams and Google Gemini.
+# Slight changes to update routing and handle more communication between dashboard and noise level pages.
 
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
@@ -37,11 +38,11 @@ def _find_room(room_identifier: str):
 # Page routes
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return render_template('index.html') # Changed root to go to the room noise level page.
 
 @app.route("/dashboard")
 def dashboard():
-    return render_template("dashboard.html")
+    return render_template('dashboard.html')
 
 @app.route("/report")
 def report():
@@ -87,7 +88,8 @@ def handle_disconnect():
     log.info("Client disconnected: %s", request.sid)
 
 
-@socketio.on("noise_alert")
+#main event handler for noise alerts
+@socketio.on('noise_alert')
 def handle_noise_alert(data):
     if not isinstance(data, dict):
         return
@@ -127,71 +129,39 @@ def handle_noise_alert(data):
 
 @socketio.on("submit_report")
 def handle_report(data):
-    if not isinstance(data, dict):
-        return
+    print(f"Report received from Room {data.get('room')}")
+    print(f"Noise Type: {data.get('noiseType')}")
+    print(f"Details: {data.get('details')}")
+    report = {
+        'room': data.get('room'),
+        'noiseType': data.get('noiseType'),
+        'details': data.get('details'),
+        'otherDetails': data.get('otherNoiseDetails'),
+        'timestamp': datetime.now().isoformat()
+    } 
+    emit('report_received', {'success':True, 'message': 'Report Submitted Successfully'})
 
-    room_identifier = str(data.get("room", "")).strip()
-    if not room_identifier:
-        log.warning("submit_report: missing room from %s", request.sid)
-        emit("report_received", {"success": False, "message": "Invalid report data."})
-        return
+    socketio.emit('dashboard_new_report', report) # Small addition for the future dashboard to receive the report from the report page.
 
-    log.info("Report: Room %s | type=%s | severity=%s",
-             room_identifier, data.get("noiseType"), data.get("severity"))
-    now      = datetime.now(timezone.utc)
-    room_doc = _find_room(room_identifier)
-
-    noise_reports().insert_one({
-        "room_id":       room_doc["_id"] if room_doc else None,
-        "room_name":     room_doc["name"] if room_doc else f"Room {room_identifier}",
-        "source":        "report",
-        "status":        None,
-        "noise_type":    data.get("noiseType"),
-        "severity":      data.get("severity"),
-        "details":       data.get("details"),
-        "other_details": data.get("otherNoiseDetails"),
-        "reported_at":   now,
-        "resolved":      False,
-        "resolved_by":   None,
-        "resolved_at":   None,
-    })
-
-    emit("report_received", {"success": True, "message": "Report Submitted Successfully"})
-
-    # Forward report to the staff dashboard
-    socketio.emit("dashboard_new_report", {
-        "room":        room_identifier,
-        "noiseType":   data.get("noiseType"),
-        "details":     data.get("details"),
-        "otherDetails": data.get("otherNoiseDetails"),
-        "timestamp":   now.isoformat(),
-    })
-
-
-@socketio.on("change_settings")
+@socketio.on('change_settings') # Event handler for staff changing settings for a specific room.
 def handle_change_settings(data):
-    log.info("Config change: Room %s | greenMax=%s | yellowMax=%s | cooldown=%s | micSensitivity=%s | noiseCancelation=%s",
-         data.get("room"), data.get("greenMax"), data.get("yellowMax"),
-         data.get("countdownMins"), data.get("micSensitivity"), data.get("noiseCancelation"))
-    socketio.emit("apply_new_settings", data)
+    print(f"[CONFIG CHANGE] An Admin updated thresholds for Room {data.get('room')}: Green Max={data.get('greenMax')}, Yellow Max={data.get('yellowMax')}, Cooldown Timer={data.get('countdownMins')}, Mic Sensitivity = {data.get('micSensitivity')}, Noise cancelation = {data.get('noiseCancelation')}", )
+    socketio.emit('apply_new_settings', data) # Send this to the network so the correct room will receive this change in settings.
 
 
-@socketio.on("room_ping")
+@socketio.on('room_ping') # Event handler for room pinging updates.
 def handle_room_ping(data):
-    log.info("Heartbeat: Room %s is %s (Level: %s)", data.get("room"), data.get("status"), data.get("level"))
-    socketio.emit("live_room_ping", {
-        "room":      data.get("room"),
-        "level":     data.get("level"),
-        "status":    data.get("status"),
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-    })
+    # Log it locally if you want to verify, or leave it quiet to avoid terminal clutter
+    print(f"Heartbeat: Room {data.get('room')} is currently {data.get('status')} (Level: {data.get('level')})")
 
+    payload = { # Get this info down here...
+        'room': data.get('room'),
+        'level': data.get('level'),
+        'status': data.get('status'),
+        'timestamp': datetime.now().isoformat()
+    }
+    socketio.emit('live_room_ping', payload) #...then send to dashboard to update that page with the latest info.
 
-with app.app_context():
-    init_collections()
-
-if __name__ == "__main__":
-    debug_mode = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
-    if debug_mode:
-        log.warning("Running in DEBUG mode — do not use in production.")
-    socketio.run(app, debug=debug_mode, host="0.0.0.0", port=5000)
+#Run server
+if __name__=='__main__':
+    socketio.run(app, debug=True,  host='0.0.0.0', port=5000)
