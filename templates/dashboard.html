@@ -166,6 +166,21 @@ Edited and updated to have functionality with other parts of the project by Make
             font-weight: bold;
         }
         .config-form button:hover { background-color: darkblue; }
+        
+        .config-form{
+            display: flex;
+            flex-direction: row;
+            gap: 20px;          
+            width: 100%;        
+            align-items: stretch;
+        }
+        .settings-card, .creation-card {
+            flex: 1;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px gray;
+        }
     </style>
 </head>
 <body>
@@ -220,14 +235,32 @@ Edited and updated to have functionality with other parts of the project by Make
 
             <!-- Dynamic Admin Controls for staff (Room settings Management) -->
             <section class="data-section config-form">
-                <h3>Room Settings Controls ⚙️</h3>
-                <p>Room No. <input type="text" id="targetRoom" placeholder="Room #" style="width: 90px;"></p> <!--Room whose settings will be changed.-->
-                <p>Quiet/Green Threshold Limit (Decibels): <input type="number" id="greenMax" min="10" placeholder="Min=10"></p> <!--Quiet level threshold.-->
-                <p>Slightly Loud/Yellow Threshold Limit (Decibels): <input type="number" id="yellowMax" min="15" placeholder="Min=15"></p> <!--Slightly loud threshold.-->
-                <p>Red Timer (Mins): <input type="number" id="countdownMins"  min="1" max="10" style="width: 150px;" placeholder="Min=1,Max=10"></p> <!--Red cooldown period duration.-->
-                <p>Microphone Sensitivity: (Multiplier) <input type="number" id="micSensitivity" min="1" max="10" step="0.5" style="width: 150px;" placeholder="Min=1, Max=10"></p> <!--Microphone sensitivity.-->
-                <p>Background Noise Cancellation <input type="checkbox" id="noiseCancellation" style="transform: scale(1.5); margin-left: 10px;"> </p> <!--Checkbox for turning noise cancellation on or off.-->
-                <button onclick="sendNewSettings()">Apply Settings</button> <!--Send settings to noise level page for the selected room.-->
+                <div class = "settings-card">
+                    <h3>Room Settings Controls ⚙️</h3>
+                    <p>Room No. <input type="text" id="targetRoom" placeholder="Room #" style="width: 90px;"></p> <!--Room whose settings will be changed.-->
+                    <p>Quiet/Green Threshold Limit (Decibels): <input type="number" id="greenMax" min="10" placeholder="Min=10"></p> <!--Quiet level threshold.-->
+                    <p>Slightly Loud/Yellow Threshold Limit (Decibels): <input type="number" id="yellowMax" min="15" placeholder="Min=15"></p> <!--Slightly loud threshold.-->
+                    <p>Red Timer (Mins): <input type="number" id="countdownMins"  min="1" max="10" style="width: 150px;" placeholder="Min=1,Max=10"></p> <!--Red cooldown period duration.-->
+                    <p>Microphone Sensitivity: (Multiplier) <input type="number" id="micSensitivity" min="1" max="10" step="0.5" style="width: 150px;" placeholder="Min=1, Max=10"></p> <!--Microphone sensitivity.-->
+                    <p>Background Noise Cancellation <input type="checkbox" id="noiseCancellation" style="transform: scale(1.5); margin-left: 10px;"> </p> <!--Checkbox for turning noise cancellation on or off.-->
+                    <button onclick="sendNewSettings()">Apply Settings</button> <!--Send settings to noise level page for the selected room.-->
+                </div>
+                <div class = "creation-card">
+                    <h3>Room Creation / Deletion</h3>
+                    <p>Room No. <input type="text" id="roomNumber" placeholder="Room #"></p>
+                    <p>Action
+                        <select id="userAction" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; margin-left: 10px;">
+                            <option value="Check">Check</option>
+                            <option value="Create">Create</option>
+                            <option value="Delete">Delete</option>
+                        </select>
+                    </p>
+                    <div class="room-actions">
+                        <button onclick="Dummy()">Submit Request</button>
+                        <button onclick="document.getElementById('roomMessage').textContent = 'Finished Action'; document.getElementById('roomMessage').className = 'room-message';">Clear Message</button>
+                    </div>
+                    <p id="roomMessage" class="room-message">Dummy Message</p>
+                </div>
             </section>
 
             <!-- Live Automated Log -->
