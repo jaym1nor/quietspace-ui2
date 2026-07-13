@@ -7,6 +7,11 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from dotenv import load_dotenv
+import os # Somehow this import was missing
+import logging # Somehow this import was missing
+from datetime import datetime, timezone, timedelta
+from bson import ObjectId
+import secrets
 
 load_dotenv()
 
@@ -49,7 +54,7 @@ def report():
     return render_template("reportingPage.html")
 
 # REST endpoints
-@app.route("/api/staff/dashboard-data")
+@app.route("/api/staff/dashboard-data") # CRUD - Reads the data.
 def staff_dashboard_data():
     # Returns recent alerts and reports from MongoDB for the staff dashboard."""
     recent = list(
@@ -127,20 +132,31 @@ def handle_noise_alert(data):
     })
 
 
-@socketio.on("submit_report")
+@socketio.on("submit_report") # Report is created and sent to database and dashboard.
 def handle_report(data):
-    print(f"Report received from Room {data.get('room')}")
-    print(f"Noise Type: {data.get('noiseType')}")
-    print(f"Details: {data.get('details')}")
-    report = {
-        'room': data.get('room'),
-        'noiseType': data.get('noiseType'),
-        'details': data.get('details'),
-        'otherDetails': data.get('otherNoiseDetails'),
-        'timestamp': datetime.now().isoformat()
-    } 
-    emit('report_received', {'success':True, 'message': 'Report Submitted Successfully'})
+    room_identifier = str(data.get('room', '')).strip() # Get room id.
+    room_doc = _find_room(room_identifier) # Locates the target room we are look for.
+    now = datetime.now(timezone.utc)
 
+    report = {
+        'room_id': room_doc["_id"] if room_doc else None,
+        'room_name': room_doc["name"] if room_doc else f"Room{room_identifier}",
+        'source': "report",
+        'reported_at': now,
+        'noise_type': data.get('noiseType'),
+        'severity': data.get('severity'),
+        'details': data.get('details'),
+        'other_details': data.get("otherNoiseDetails"),
+        'resolved': False,
+        'resolved_by': None,
+        'resolved_at': None,
+    }
+
+    # CRUD - The Create Part
+    noise_reports().insert_one(report)
+    emit('report_received', {'success':True, 'message': 'Report Submitted Successfully'})
+    report['timestamp'] = now.isoformat()
+    report['noise_type'] = data.get('noiseType') 
     socketio.emit('dashboard_new_report', report) # Small addition for the future dashboard to receive the report from the report page.
 
 @socketio.on('change_settings') # Event handler for staff changing settings for a specific room.
@@ -162,6 +178,95 @@ def handle_room_ping(data):
     }
     socketio.emit('live_room_ping', payload) #...then send to dashboard to update that page with the latest info.
 
+
+@socketio.on('resolve_incident') # CRUD - Update the report state to be resolved.
+def handle_resolved_incident(data):
+    report_id = data.get('report_id')
+
+    if report_id: # If a report id is there, update that report to be resolved and say when it was resolved.
+        noise_reports().update_one(
+            {"_id": report_id},
+            {"$set": {
+                "resolved": True,
+                "resolved_at": datetime.now(timezone.utc)
+            }}
+        )
+        socketio.emit('incident_resolved', {"report_id": str(report_id)}) # Notify the dashboard of the resolved incident.
+
+def purge_old_records(days_limit = 30): # CRUD - Handle deleting old reports.
+    cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_limit) # Set a cutoff day, delete reports after they've stayed till this day.
+
+    result = noise_reports().delete_many({"reported_at": {"#lt": cutoff_date}})
+    log.info("Purged %d old noise reports.", result.deleted_count)
+
+
+@app.route('/api/rooms', methods=['GET']) # CRUD READ, used to get rooms from database and put on the dashboard dynamically.
+def get_all_rooms():
+    try: # Try to get all rooms, sorted alphabetically.
+        all_rooms = list(rooms().find({"is_active": True}).sort("name", 1))
+        serialized_rooms = []
+        for rm in all_rooms:
+            serialized_rooms.append({
+                "id": str(rm["_id"]),
+                "name": rm["name"],
+                "qr_token": rm["qr_token"]
+            })
+        return jsonify({"success": True, "rooms": serialized_rooms})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+    
+@app.route('/api/rooms/create', methods=['POST']) # CRUD CREATE, handles adding new rooms from the dashboard to the database.
+def create_room():
+    data = request.json or {}
+    room_no = str(data.get('roomNumber', '')).strip() # Get room number
+
+    if not room_no: # Room must have a number.
+        return jsonify({"success": False, "message": "Can't have an empty room number."}), 400
+    
+    full_name = f"Study Room {room_no}" # Give it a full name.
+
+    if _find_room(room_no): # A simple check to see if a room of the entered number exists already.
+        return jsonify({"success": False, "message": f"{full_name} already exists."}), 400
+    
+    token = secrets.token_hex(8)
+    new_room = { # Fill the schema with the needed room info
+        "name": full_name,
+        "location":{"building": "Library", "floor": 3},
+        "qr_token": token,
+        "qr_url": f"http://localhost:5000/report?room={room_no}",
+        "is_active": True,
+        "capacity": 4,
+        "tags": ["quiet-zone"],
+        "created_at": datetime.now(timezone.utc)
+    }
+
+    rooms().insert_one(new_room) # Create the new room
+    return jsonify({"success": True, "message": f"Successfully create {full_name}."})
+
+@app.route('/api/rooms/delete', methods=['POST']) # CRUD DELETE, handles the deletion of rooms.
+def delete_room():
+    data = request.json or {}
+    room_no = str(data.get('roomNumber', '')).strip() # Get room number
+
+    if not room_no:
+        return jsonify({"success": False, "message": "Room number is required."}), 400
+    
+    room_doc = _find_room(room_no) # Find that room
+    if not room_doc:
+        return jsonify({"success": False, "message": f"Room {room_no} not found."}), 400
+    
+    rooms().delete_one({"_id": room_doc["_id"]}) # Delete the room
+    noise_reports().delete_many({"room_id": room_doc["_id"]}) # Clean up the noise report
+
+    return jsonify({"success": True, "message": f"Successfully delete Room {room_no}"})
+
+
 #Run server
 if __name__=='__main__':
+    try: # ADDED: A try except block to try and initialize the database as needed.
+        init_collections()
+        log.info("Database collection verified!")
+    except Exception as e:
+        log.warning("Couldn't initialize database collection!", e)
+
     socketio.run(app, debug=True,  host='0.0.0.0', port=5000)

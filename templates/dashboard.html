@@ -203,36 +203,8 @@ Edited and updated to have functionality with other parts of the project by Make
         <main class="container">
             
             <!-- Dynamic Room Monitoring Cards -->
-            <!--These rooms will probably change when database is properly implemented-->
-            <section class="stats-grid">
-                <!-- Room 301 -->
-                <div class="card" id="card-301">
-                    <h3>Room 301</h3>
-                    <p>Current Level: <strong id="level-301">--</strong></p>
-                    <p>Last Updated: <span id="time-301">--:--:--</span></p>
-                    <p>Status: <span id="status-301" class="status-badge status-green">QUIET</span></p>
-                </div>
-                <!-- Room 302 -->
-                <div class="card" id="card-302">
-                    <h3>Room 302</h3>
-                    <p>Current Level: <strong id="level-302">--</strong></p>
-                    <p>Last Updated: <span id="time-302">--:--:--</span></p>
-                    <p>Status: <span id="status-302" class="status-badge status-green">QUIET</span></p>
-                </div>
-                <!-- Room 303 -->
-                <div class="card" id="card-303">
-                    <h3>Room 303</h3>
-                    <p>Current Level: <strong id="level-303">--</strong></p>
-                    <p>Last Updated: <span id="time-303">--:--:--</span></p>
-                    <p>Status: <span id="status-303" class="status-badge status-green">QUIET</span></p>
-                </div>
-                <!-- Room 311 -->
-                <div class="card" id="card-311">
-                    <h3>Room 311</h3>
-                    <p>Current Level: <strong id="level-311">--</strong></p>
-                    <p>Last Updated: <span id="time-311">--:--:--</span></p>
-                    <p>Status: <span id="status-311" class="status-badge status-green">QUIET</span></p>
-                </div>
+            <section class="stats-grid" id="dynamicRoomsGrid">
+                <!--This section will be used to dynamically hold cards read from the database.-->
             </section>
 
             <!-- Dynamic Admin Controls for staff (Room settings Management) -->
@@ -249,19 +221,18 @@ Edited and updated to have functionality with other parts of the project by Make
                 </div>
                 <div class = "creation-card">
                     <h3>Room Creation / Deletion</h3>
-                    <p>Room No. <input type="text" id="roomNumber" placeholder="Room #"></p>
+                    <p>Room No. <input type="text" id="roomNumber" placeholder="e.g. 301"></p>
                     <p>Action
                         <select id="userAction" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; margin-left: 10px;">
-                            <option value="Check">Check</option>
                             <option value="Create">Create</option>
                             <option value="Delete">Delete</option>
                         </select>
                     </p>
                     <div class="room-actions">
-                        <button onclick="Dummy()">Submit Request</button>
-                        <button onclick="document.getElementById('roomMessage').textContent = 'Finished Action'; document.getElementById('roomMessage').className = 'room-message';">Clear Message</button>
+                        <button onclick="handleRoomCRUD()" style="margin-top: 10px;">Submit Request</button> <!--Replaced dummy with an actual CRUD function.-->
+                        <button onclick="document.getElementById('roomMessage').textContent = '';" style="margin-top: 10px;">Clear Message</button>
                     </div>
-                    <p id="roomMessage" class="room-message">Dummy Message</p>
+                    <p id="roomMessage" class="room-message" style="margin-top: 10px; font-weight: bold; color: red;"></p>
                 </div>
             </section>
 
@@ -318,9 +289,72 @@ Edited and updated to have functionality with other parts of the project by Make
         // Establish core reference DOM hooks
         const automatedLogBody = document.getElementById('automatedLogBody');
         const studentReportsBody = document.getElementById('studentReportsBody');
+        const dynamicRoomsGrid = document.getElementById('dynamicRoomsGrid');
+        const roomMessage = document.getElementById('roomMessage');
 
+        function loadRoomsGrid(){ // CRUD Function used to read rooms from the database and render up needed cards.
+            fetch('/api/rooms')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.rooms.length > 0){
+                    dynamicRoomsGrid.innerHTML = ''; // Clears the grid
+                    data.rooms.forEach(room => {
+                        const roomNum = room.name.replace(/^\D+/g, ''); // Gets only the number for the rooms
+                        const card = document.createElement('div');
+                        card.className = 'card';
+                        card.id = `card-${roomNum}`;
+                        card.innerHTML = `
+                            <h3>${room.name}</h3>
+                            <p>Current Level: <strong id="level-${roomNum}">--</strong></p>
+                            <p>Last Updated: <span id="time-${roomNum}">--:--:--</span></p>
+                            <p>Status: <span id="status-${roomNum}" class="status-badge status-green">Quiet </span></p>
+                            `;
+                        dynamicRoomsGrid.appendChild(card);
+                    });
+                }
+                else{
+                    dynamicRoomsGrid.innerHTML = '<p style="grid-column: 1/-1; color #666: font-style: italic;">No active rooms found in the database. Used creation panel below to create one.</p>';
+                }
+            })
+            .catch(err => console.error("Error fetching rooms:", err));
+        }
 
-        // 1. LISTEN FOR INTERCEPTED LIVE NOISE FROM MIC
+        socket.on('connect', () =>{ // On boot up or refresh of the dashboard, this will make the page read the database and create room cards as needed.
+            console.log("Successfully connected to the database, Rooms should be loaded!");
+            loadRoomsGrid();
+        })
+
+        function handleRoomCRUD(){ // CRUD Function used to create and delete rooms.
+            const roomNumber = document.getElementById('roomNumber').value.trim();
+            const action = document.getElementById('userAction').value;
+
+            if(!roomNumber){ // Check to ensure a number is entered.
+                alert("Please enter a room number.");
+                return;
+            }
+
+            const endpoint = action === 'Create' ? '/api/rooms/create' : '/api/rooms/delete'; // What action will be choosen create or delete?
+
+            fetch(endpoint,{
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({roomNumber: roomNumber})
+            })
+            .then(res => res.json())
+            .then( data => {
+                roomMessage.textContent = data.message;
+                if (data.success){
+                    document.getElementById('roomNumber').value = '';
+                    loadRoomsGrid();
+                }
+            })
+            .catch(err => {
+                roomMessage.textContent = "Network error occured.";
+                console.error(err);
+            });
+        }
+
+        // 1. Listen to live noise from active room mics.
         socket.on('noise_update', (data) => {
             const roomNum = data.room;
             const statusVal = data.status; // e.g. "QUIET", "WARNING", "TOO LOUD"
@@ -338,7 +372,7 @@ Edited and updated to have functionality with other parts of the project by Make
                 statusEl.textContent = statusVal;
 
                 // Adjust colors matching severity classes
-                statusEl.className = "status-badge"; // clear
+                statusEl.className = "status-badge"; // Starts here by default.
                 if (statusVal === "QUIET") {
                     statusEl.classList.add("status-green");
                     if(cardEl) cardEl.style.borderLeftColor = "darkgreen";
@@ -368,7 +402,7 @@ Edited and updated to have functionality with other parts of the project by Make
             automatedLogBody.prepend(tr);
         });
 
-        // 2. LISTEN FOR BROADCASTED STUDENT FORMS 
+        // 2. Listen out for sent student filled reports
         socket.on('dashboard_new_report', (data) => {
             const placeholder = document.getElementById('student-placeholder');
             if (placeholder) placeholder.remove();
@@ -384,7 +418,7 @@ Edited and updated to have functionality with other parts of the project by Make
             studentReportsBody.prepend(tr);
         });
 
-        // 3. EMIT THRESHOLD ADJUSTMENTS BACKEND, will maybe add other audio settings later.
+        // 3. Send audio setting adjustments from this dashboard to apply to noise level page of a room.
         function sendNewSettings() {
             const thresholdData = {
                 room: document.getElementById('targetRoom').value, // Room to look for

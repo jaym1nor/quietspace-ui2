@@ -649,7 +649,7 @@ if (redLockActive) {
 
         if (data.countdownMins){ // If cooldown timer is sent, update it as well.
           RED_TIME = data.countdownMins * 60 * 1000;
-          console.log('Red cooldown timer has been adjusted! Cooldown: ${data.countdownMins}');
+          console.log(`Red cooldown timer has been adjusted! Cooldown: ${data.countdownMins}`);
         }
 
         MIC_SENSITIVITY = data.micSensitivity || 1.0; // Update mic sensitivity or default it to 1.
@@ -660,7 +660,7 @@ if (redLockActive) {
           console.log(`🎯 Mic settings updated! Boost: ${MIC_SENSITIVITY}x, Noise Cancel: ${ACTIVE_NOISE_CANCELLATION}`);
         }
 
-        console.log('Thresholds have been adjusted! Green Max: ${data.greenMax}, Yellow Max: ${data.yellowMax}');
+        console.log(`Thresholds have been adjusted! Green Max: ${data.greenMax}, Yellow Max: ${data.yellowMax}`);
       }
     })
   </script>
