@@ -3,6 +3,7 @@ Updated by Makell Williams with some slight help from Google Gemini to get use t
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,62 +16,60 @@ Updated by Makell Williams with some slight help from Google Gemini to get use t
     }
 
     body {
-  font-family: Arial, sans-serif;
-  background-color: #c5e6f9;
-  color: #1f2a44;
-  min-height: 100vh;
-  margin: 0;
-}
+      font-family: Arial, sans-serif;
+      background-color: #c5e6f9;
+      color: #1f2a44;
+      min-height: 100vh;
+      margin: 0;
+    }
 
-.page {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-bottom: 3rem;
-}
+    .page {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 3rem;
+    }
 
-.header {
-  width: 100%;
-  height: 340px;
-  overflow: hidden;
-  background-color: #dcecf7;
-  padding: 0;
-}
+    .header {
+      width: 100%;
+      height: 340px;
+      overflow: hidden;
+      background-color: #dcecf7;
+      padding: 0;
+    }
 
-.logo-wrap {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-}
+    .logo-wrap {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
 
-.logo-wrap img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 70%;
-  display: block;
-}
+    .logo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 70%;
+      display: block;
+    }
 
-.form-card {
-  width: min(760px, 92%);
-  background: linear-gradient(
-    to bottom,
-    #ffffff 0%,
-    #f7fbff 45%,
-    #edf5fc 100%
-  );
-  padding: 2.25rem 1.875rem;
-  border-radius: 14px;
-  box-shadow:
-    0 24px 55px rgba(56, 104, 180, 0.20),
-    0 10px 24px rgba(31, 60, 115, 0.10);
-  margin-top: -0.5rem;
-  margin-bottom: 2rem;
-  border: 1px solid rgba(214, 228, 242, 0.95);
-  position: relative;
-  z-index: 2;
-}
+    .form-card {
+      width: min(760px, 92%);
+      background: linear-gradient(to bottom,
+          #ffffff 0%,
+          #f7fbff 45%,
+          #edf5fc 100%);
+      padding: 2.25rem 1.875rem;
+      border-radius: 14px;
+      box-shadow:
+        0 24px 55px rgba(56, 104, 180, 0.20),
+        0 10px 24px rgba(31, 60, 115, 0.10);
+      margin-top: -0.5rem;
+      margin-bottom: 2rem;
+      border: 1px solid rgba(214, 228, 242, 0.95);
+      position: relative;
+      z-index: 2;
+    }
 
 
     .title {
@@ -191,38 +190,39 @@ Updated by Makell Williams with some slight help from Google Gemini to get use t
     }
 
     @media (max-width: 700px) {
-  .header {
-    height: 180px;
-    padding-top: 0;
-  }
+      .header {
+        height: 180px;
+        padding-top: 0;
+      }
 
-  .logo-wrap {
-    width: 100%;
-    height: 100%;
-  }
+      .logo-wrap {
+        width: 100%;
+        height: 100%;
+      }
 
-  .logo-wrap img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center 70%;
-  }
+      .logo-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center 70%;
+      }
 
-  .form-card {
-    width: 94%;
-    padding: 24px 18px;
-    margin-top: -20px;
-    border-radius: 20px;
-  }
+      .form-card {
+        width: 94%;
+        padding: 24px 18px;
+        margin-top: -20px;
+        border-radius: 20px;
+      }
 
-  .subtitle {
-    font-size: 0.97rem;
-    margin-bottom: 24px;
-  }
-}
+      .subtitle {
+        font-size: 0.97rem;
+        margin-bottom: 24px;
+      }
+    }
   </style>
   <script src="/static/socket.io.min.js"></script> <!--Get the socketIO library.-->
 </head>
+
 <body>
   <div class="page">
     <div class="header">
@@ -257,32 +257,24 @@ Updated by Makell Williams with some slight help from Google Gemini to get use t
         </div>
 
         <div class="form-group">
-  <label for="severity">Noise Level</label>
-  <select id="severity" name="severity">
-    <option value="">Select level</option>
-    <option value="low">Low (slightly distracting)</option>
-    <option value="medium">Medium (hard to focus)</option>
-    <option value="high">High (very disruptive)</option>
-  </select>
-</div>
+          <label for="severity">Noise Level</label>
+          <select id="severity" name="severity">
+            <option value="">Select level</option>
+            <option value="low">Low (slightly distracting)</option>
+            <option value="medium">Medium (hard to focus)</option>
+            <option value="high">High (very disruptive)</option>
+          </select>
+        </div>
 
         <div class="form-group hidden" id="otherNoiseGroup">
           <label for="otherNoiseDetails">Please specify</label>
-          <input
-            type="text"
-            id="otherNoiseDetails"
-            name="otherNoiseDetails"
-            placeholder="Please explain the type of noise..."
-          />
+          <input type="text" id="otherNoiseDetails" name="otherNoiseDetails"
+            placeholder="Please explain the type of noise..." />
         </div>
 
         <div class="form-group">
           <label for="details">Additional Details (Optional)</label>
-          <textarea
-            id="details"
-            name="details"
-            placeholder="Briefly describe the issue..."
-          ></textarea>
+          <textarea id="details" name="details" placeholder="Briefly describe the issue..."></textarea>
         </div>
 
         <div class="helper-text">
@@ -301,15 +293,14 @@ Updated by Makell Williams with some slight help from Google Gemini to get use t
   <script>
     const socket = io(); // Connect to the Python Flask-SocketIO server. Address can be put in parentheses for stuff if needed.
 
-    function getRoomFromURL() { 
+    function getRoomFromURL() {
       const params = new URLSearchParams(window.location.search);
       const room = params.get("room");
-      // This part below may have to be removed later, probably when a database gets added.
-      if (room === "301" || room === "302" || room === "303") {
-        return room;
+      if (room) { // Updated so if URL has room part of query equal to something, the text matches the room number.
+        return room.trim();
       }
 
-      return "302";
+      return "General";
     }
 
     const room = getRoomFromURL();
@@ -345,7 +336,7 @@ Updated by Makell Williams with some slight help from Google Gemini to get use t
         details: document.getElementById("details").value
       };
 
-    
+
       socket.emit('submit_report', formData); // Send the report data to the Python server in real time!
 
       console.log("Noise report submitted:", formData);
@@ -359,4 +350,5 @@ Updated by Makell Williams with some slight help from Google Gemini to get use t
     });
   </script>
 </body>
+
 </html>

@@ -21,7 +21,7 @@ python app.py
 
 - Staff Dashboard: `http://localhost:5000/dashboard`
 - Room Noise Display :'http://127.0.0.1:5000/?room=1' (Room number can be changed to any if needed. I.e, 311 can be 101, 20, 5, etc)
-- Report Page: `http://localhost:5000/report`
+- Report Page: `http://localhost:5000/report?room=1` (Room number can be changed to any.)
 
 Click "Start Microphone" → Make noise → Wait 30 seconds → Alert sends to server.
 

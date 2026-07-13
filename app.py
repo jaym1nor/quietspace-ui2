@@ -59,12 +59,14 @@ def staff_dashboard_data():
     # Returns recent alerts and reports from MongoDB for the staff dashboard."""
     recent = list(
         noise_reports()
-        .find({}, {"_id": 0, "room_name": 1, "source": 1, "status": 1,
+        .find({}, {"_id": 1, "room_name": 1, "source": 1, "status": 1,
                    "noise_type": 1, "severity": 1, "reported_at": 1})
         .sort("reported_at", -1)
         .limit(50)
     )
     for r in recent:
+        r["id"] = str(r["_id"])          #  Extract the raw BSON ObjectId to a clean string string
+        del r["_id"]                     # Clean up raw dictionary object to make it serializable
         r["reported_at"] = r["reported_at"].isoformat()
  
     total_alerts  = noise_reports().count_documents({"source": "alert"})
@@ -138,7 +140,7 @@ def handle_report(data):
     room_doc = _find_room(room_identifier) # Locates the target room we are look for.
     now = datetime.now(timezone.utc)
 
-    report = {
+    report_document = {
         'room_id': room_doc["_id"] if room_doc else None,
         'room_name': room_doc["name"] if room_doc else f"Room{room_identifier}",
         'source': "report",
@@ -149,15 +151,25 @@ def handle_report(data):
         'other_details': data.get("otherNoiseDetails"),
         'resolved': False,
         'resolved_by': None,
-        'resolved_at': None,
+        'resolved_at': None
     }
 
     # CRUD - The Create Part
-    noise_reports().insert_one(report)
-    emit('report_received', {'success':True, 'message': 'Report Submitted Successfully'})
-    report['timestamp'] = now.isoformat()
-    report['noise_type'] = data.get('noiseType') 
-    socketio.emit('dashboard_new_report', report) # Small addition for the future dashboard to receive the report from the report page.
+    noise_reports().insert_one(report_document) # Insert the report into the database.
+    emit('report_received', {'success':True, 'message': 'Report Submitted Successfully'}) # Let the user who sent the report know it was sent correctly.
+    
+    if '_id' in report_document: # Convert to string before JSON serialization to avoid typeerror
+        report_document['_id'] = str(report_document['_id'])
+
+    if 'room_id' in report_document and report_document["room_id"]: # Convert to string before JSON serialization to avoid typeerror
+        report_document['room_id'] = str(report_document["room_id"])
+
+    report_document['timestamp'] = now.isoformat() # Foratting these 4 parameters so the dashboard can get them.
+    report_document['room'] = room_identifier
+    report_document['noise_type'] = data.get('noiseType')
+    report_document["reported_at"] = str(report_document["reported_at"])
+
+    socketio.emit('dashboard_new_report', report_document) # Broadcast this report to the dashboard.
 
 @socketio.on('change_settings') # Event handler for staff changing settings for a specific room.
 def handle_change_settings(data):
@@ -192,6 +204,73 @@ def handle_resolved_incident(data):
             }}
         )
         socketio.emit('incident_resolved', {"report_id": str(report_id)}) # Notify the dashboard of the resolved incident.
+
+# 1. CRUD - UPDATE: Mark a specific report as resolved in MongoDB
+@socketio.on('resolve_report')
+def handle_resolve_report(data):
+    report_id_str = data.get('report_id')
+    if not report_id_str:
+        return
+        
+    try:
+        # Convert the incoming text ID back into a proper MongoDB BSON ObjectId
+        from bson import ObjectId
+        report_id = ObjectId(report_id_str)
+        
+        # Update the specific document's keys using the $set operator
+        noise_reports().update_one(
+            {"_id": report_id},
+            {"$set": {
+                "resolved": True,
+                "resolved_at": datetime.now(timezone.utc)
+            }}
+        )
+        log.info(f"📁 [DATABASE UPDATE] Report {report_id_str} marked as resolved.")
+        
+        # Broadcast the resolution out to all open dashboard screens so they can update their UI
+        socketio.emit('report_status_updated', {"report_id": report_id_str, "action": "resolved"})
+    except Exception as e:
+        print(f"Error resolving report: {e}")
+
+# 2. CRUD - DELETE: Completely erase a specific report document from MongoDB
+@socketio.on('delete_report')
+def handle_delete_report(data):
+    report_id_str = data.get('report_id')
+    if not report_id_str:
+        return
+        
+    try:
+        from bson import ObjectId
+        report_id = ObjectId(report_id_str)
+        
+        # Erase the document from the database collection
+        noise_reports().delete_one({"_id": report_id})
+        log.info(f"🗑️ [DATABASE DELETE] Report {report_id_str} deleted entirely.")
+        
+        # Broadcast the deletion out to all open dashboards so they drop it from the UI list
+        socketio.emit('report_status_updated', {"report_id": report_id_str, "action": "deleted"})
+    except Exception as e:
+        print(f"Error deleting report: {e}")
+
+
+@socketio.on('delete_report')
+def handle_delete_report(data):
+    report_id_str = data.get('report_id')
+    if not report_id_str:
+        return
+        
+    try:
+        from bson import ObjectId
+        report_id = ObjectId(report_id_str)
+        
+        # Erase the document from the database collection
+        noise_reports().delete_one({"_id": report_id})
+        log.info(f"🗑️ [DATABASE DELETE] Report {report_id_str} deleted entirely.")
+        
+        # Broadcast the deletion out to all open dashboards so they drop it from the UI list
+        socketio.emit('report_status_updated', {"report_id": report_id_str, "action": "deleted"})
+    except Exception as e:
+        print(f"Error deleting report: {e}")
 
 def purge_old_records(days_limit = 30): # CRUD - Handle deleting old reports.
     cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_limit) # Set a cutoff day, delete reports after they've stayed till this day.
@@ -243,7 +322,7 @@ def create_room():
     rooms().insert_one(new_room) # Create the new room
     return jsonify({"success": True, "message": f"Successfully create {full_name}."})
 
-@app.route('/api/rooms/delete', methods=['POST']) # CRUD DELETE, handles the deletion of rooms.
+@app.route('/api/rooms/delete', methods=['DELETE']) # CRUD DELETE, handles the deletion of rooms. Updated from Gemini's to now use the proper DELETE method instead of a POST.
 def delete_room():
     data = request.json or {}
     room_no = str(data.get('roomNumber', '')).strip() # Get room number

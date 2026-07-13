@@ -4,6 +4,7 @@ Made it work more as a template for many different rooms and to be able to apply
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,7 +16,8 @@ Made it work more as a template for many different rooms and to be able to apply
       padding: 0;
     }
 
-    html, body {
+    html,
+    body {
       width: 100%;
       min-height: 100%;
       font-family: "Avenir Next", "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
@@ -288,6 +290,7 @@ Made it work more as a template for many different rooms and to be able to apply
   </style>
   <script src="/static/socket.io.min.js"></script>
 </head>
+
 <body>
   <div class="screen">
     <div class="top-bar">
@@ -316,11 +319,7 @@ Made it work more as a template for many different rooms and to be able to apply
             Scan the QR code to submit a room-specific noise report.
           </div>
         </div>
-        <img
-          src="{{ url_for('static', filename='testqrcode.png') }}"
-          alt="QR code"
-          class="qr-image"
-        />
+        <img src="{{ url_for('static', filename='testqrcode.png') }}" alt="QR code" class="qr-image" />
       </div>
 
       <div class="countdown-card hidden" id="countdownCard">
@@ -375,7 +374,7 @@ Made it work more as a template for many different rooms and to be able to apply
 
     let currentState = "green";
     let stateEnteredAt = Date.now();
-    
+
     const radius = 52;
     const circumference = 2 * Math.PI * radius;
 
@@ -396,15 +395,13 @@ Made it work more as a template for many different rooms and to be able to apply
     countdownProgress.style.strokeDasharray = `${circumference}`;
     countdownProgress.style.strokeDashoffset = "0";
 
-    function getRoomFromURL(){ // Gets room number from url, made with Google Gemini's help.
+    function getRoomFromURL() { // Gets room number from url, made with Google Gemini's help.
       const params = new URLSearchParams(window.location.search);
       return params.get("room") || "311"; // Use params from url to get specific room number.
     }
 
     const currentRoomNumber = getRoomFromURL();
     document.getElementById("roomLabel").textContent = `Study Room ${currentRoomNumber}`; // Now room number label should be the proper room's number, not just 311.
-    console.log("DEBUG: The current room is:", currentRoomNumber); // WILL REMOVE THIS LATER. JUST FOR TESTING!
-    // Enter http://localhost:5000/dashboard?room=xyz in url to see different rooom numbers, where xyz is some number.
 
     function formatTime(ms) {
       const total = Math.max(0, Math.ceil(ms / 1000));
@@ -423,39 +420,39 @@ Made it work more as a template for many different rooms and to be able to apply
     }
 
     function startCountdown() {
-  if (countdownStart !== null) return;
+      if (countdownStart !== null) return;
 
-  countdownSamples = []; // Empty the array as countdown starts anew.
+      countdownSamples = []; // Empty the array as countdown starts anew.
 
-  countdownStart = Date.now();
-  countdownFinished = false;
+      countdownStart = Date.now();
+      countdownFinished = false;
 
-  redLockActive = true;
-  redLockEndsAt = countdownStart + RED_TIME;
+      redLockActive = true;
+      redLockEndsAt = countdownStart + RED_TIME;
 
-  reportCard.classList.add("hidden");
-  countdownCard.classList.remove("hidden");
-  updateCircle(RED_TIME);
-}
+      reportCard.classList.add("hidden");
+      countdownCard.classList.remove("hidden");
+      updateCircle(RED_TIME);
+    }
 
     function resetCountdown() {
-  countdownStart = null;
-  countdownFinished = false;
+      countdownStart = null;
+      countdownFinished = false;
 
-  redLockActive = false;
-  redLockEndsAt = null;
+      redLockActive = false;
+      redLockEndsAt = null;
 
-  reportCard.classList.remove("hidden");
-  countdownCard.classList.add("hidden");
-  updateCircle(RED_TIME);
-}
+      reportCard.classList.remove("hidden");
+      countdownCard.classList.add("hidden");
+      updateCircle(RED_TIME);
+    }
 
     async function startMonitoring() {
       if (isMonitoring) return;
 
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          audio:{ // Adjusted to add the noise suppression and echo cancelling features for the mic. Now bound to whether the noise cancellation is active or not through the dashboard.
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: { // Adjusted to add the noise suppression and echo cancelling features for the mic. Now bound to whether the noise cancellation is active or not through the dashboard.
             noiseSuppression: ACTIVE_NOISE_CANCELLATION,
             echoCancellation: ACTIVE_NOISE_CANCELLATION,
             autoGainControl: ACTIVE_NOISE_CANCELLATION
@@ -486,8 +483,8 @@ Made it work more as a template for many different rooms and to be able to apply
       }
     }
 
-    async function restartMicrophoneStream(){ // New function that resets the mic hardware to allow for noise suppression to be applied more easily.
-      if (currentStream){
+    async function restartMicrophoneStream() { // New function that resets the mic hardware to allow for noise suppression to be applied more easily.
+      if (currentStream) {
         currentStream.getTracks().forEach(track => track.stop()); // Stop the mic from detecting audio...
         isMonitoring = false;
         await startMonitoring() //...Then start the mic again, this time with the new noise suppression settings applied.
@@ -520,80 +517,80 @@ Made it work more as a template for many different rooms and to be able to apply
       soundLevelText.textContent = "Current Sound Level: " + level;
 
       let targetState;
-if (level < GREEN_MAX_THRESHOLD) { // Changed from 20 to a variable that is able to be edited by staff through dashboard.
-  targetState = "green";
-} else if (level < YELLOW_MAX_THRESHOLD) { // Change from 50 to a variable like above.
-  targetState = "yellow";
-} else {
-  targetState = "red";
-}
+      if (level < GREEN_MAX_THRESHOLD) { // Changed from 20 to a variable that is able to be edited by staff through dashboard.
+        targetState = "green";
+      } else if (level < YELLOW_MAX_THRESHOLD) { // Change from 50 to a variable like above.
+        targetState = "yellow";
+      } else {
+        targetState = "red";
+      }
 
-latestDetectedState = targetState;
-const now = Date.now(); // Moved this from below the following if to above to fix a reference error.
+      latestDetectedState = targetState;
+      const now = Date.now(); // Moved this from below the following if to above to fix a reference error.
 
-if (now - lastPing >= ping_Interval_MS){ // Simple loop that happens every so often to send status updates to dashboard.
-  socket.emit('room_ping',{ // Sends the room number, noise level and status.
-    room: currentRoomNumber,
-    level: level,
-    status: targetState.toUpperCase()
-  });
-  lastPing = now; // Now repeat for next time...
+      if (now - lastPing >= ping_Interval_MS) { // Simple loop that happens every so often to send status updates to dashboard.
+        socket.emit('room_ping', { // Sends the room number, noise level and status.
+          room: currentRoomNumber,
+          level: level,
+          status: targetState.toUpperCase()
+        });
+        lastPing = now; // Now repeat for next time...
 
-  if (redLockActive){
-    countdownSamples.push(level);
-  }
-}
+        if (redLockActive) {
+          countdownSamples.push(level);
+        }
+      }
 
-      
-const timeInCurrentState = now - stateEnteredAt;
 
-if (redLockActive) {
-  const remaining = redLockEndsAt - now;
-  updateCircle(remaining);
+      const timeInCurrentState = now - stateEnteredAt;
 
-  if (remaining <= 0 && !countdownFinished) {
-    countdownFinished = true;
+      if (redLockActive) {
+        const remaining = redLockEndsAt - now;
+        updateCircle(remaining);
 
-    let totalVolumeAccumulated = 0; // Total of colume from samples during red cooldown.
-    for (let i = 0; i < countdownSamples.length; i++){
-      totalVolumeAccumulated += countdownSamples[i];
-    }
+        if (remaining <= 0 && !countdownFinished) {
+          countdownFinished = true;
 
-    // Check just in case array is empty. (AVOIDS DIVIDING BY 0!)
-    const averageCountdownVolume = countdownSamples.length > 0 ? (totalVolumeAccumulated / countdownSamples.length) : 0;
+          let totalVolumeAccumulated = 0; // Total of colume from samples during red cooldown.
+          for (let i = 0; i < countdownSamples.length; i++) {
+            totalVolumeAccumulated += countdownSamples[i];
+          }
 
-    if (averageCountdownVolume >= YELLOW_MAX_THRESHOLD){ // If average noise over the cooldown period was greater than the yellow threshold...
-      socket.emit('noise_alert', { //...red state is maintained, so send a noise alert.
-        room: currentRoomNumber,
-        status: "SUSTAINED LOUDNESS"
-      });
-    }
+          // Check just in case array is empty. (AVOIDS DIVIDING BY 0!)
+          const averageCountdownVolume = countdownSamples.length > 0 ? (totalVolumeAccumulated / countdownSamples.length) : 0;
 
-    redLockActive = false;
-    countdownStart = null;
-    redLockEndsAt = null;
+          if (averageCountdownVolume >= YELLOW_MAX_THRESHOLD) { // If average noise over the cooldown period was greater than the yellow threshold...
+            socket.emit('noise_alert', { //...red state is maintained, so send a noise alert.
+              room: currentRoomNumber,
+              status: "SUSTAINED LOUDNESS"
+            });
+          }
 
-    countdownCard.classList.add("hidden");
-    reportCard.classList.remove("hidden");
+          redLockActive = false;
+          countdownStart = null;
+          redLockEndsAt = null;
 
-    setState(latestDetectedState);
-  }
-} else {
-  if (isMoreSevere(targetState, currentState)) {
-    setState(targetState);
-  } else if (targetState !== currentState) {
-    const requiredHold =
-      currentState === "red"
-        ? RED_HOLD_MS
-        : currentState === "yellow"
-        ? YELLOW_HOLD_MS
-        : 0;
+          countdownCard.classList.add("hidden");
+          reportCard.classList.remove("hidden");
 
-    if (timeInCurrentState >= requiredHold) {
-      setState(targetState);
-    }
-  }
-}
+          setState(latestDetectedState);
+        }
+      } else {
+        if (isMoreSevere(targetState, currentState)) {
+          setState(targetState);
+        } else if (targetState !== currentState) {
+          const requiredHold =
+            currentState === "red"
+              ? RED_HOLD_MS
+              : currentState === "yellow"
+                ? YELLOW_HOLD_MS
+                : 0;
+
+          if (timeInCurrentState >= requiredHold) {
+            setState(targetState);
+          }
+        }
+      }
 
 
       requestAnimationFrame(updateSoundLevel);
@@ -642,19 +639,19 @@ if (redLockActive) {
       }
     }
 
-    socket.on('apply_new_settings', (data) =>{ // Page will now listen for setting updates from the staff dashboard page.
-      if (data.room === currentRoomNumber){ // MAKE SURE THE ROOM THE STAFF ARE LOOKING TO UPDATE IS THE EXACT SAME AS THE ROOM NUMBER OF A NOISE LEVEL PAGE!
+    socket.on('apply_new_settings', (data) => { // Page will now listen for setting updates from the staff dashboard page.
+      if (data.room === currentRoomNumber) { // MAKE SURE THE ROOM THE STAFF ARE LOOKING TO UPDATE IS THE EXACT SAME AS THE ROOM NUMBER OF A NOISE LEVEL PAGE!
         GREEN_MAX_THRESHOLD = data.greenMax; // Apply changes and notfify through console.
         YELLOW_MAX_THRESHOLD = data.yellowMax;
 
-        if (data.countdownMins){ // If cooldown timer is sent, update it as well.
+        if (data.countdownMins) { // If cooldown timer is sent, update it as well.
           RED_TIME = data.countdownMins * 60 * 1000;
           console.log(`Red cooldown timer has been adjusted! Cooldown: ${data.countdownMins}`);
         }
 
         MIC_SENSITIVITY = data.micSensitivity || 1.0; // Update mic sensitivity or default it to 1.
 
-        if (data.noiseCancellation !== undefined && data.noiseCancellation !== ACTIVE_NOISE_CANCELLATION){
+        if (data.noiseCancellation !== undefined && data.noiseCancellation !== ACTIVE_NOISE_CANCELLATION) {
           ACTIVE_NOISE_CANCELLATION = data.noiseCancellation;
           restartMicrophoneStream();
           console.log(`🎯 Mic settings updated! Boost: ${MIC_SENSITIVITY}x, Noise Cancel: ${ACTIVE_NOISE_CANCELLATION}`);
@@ -665,4 +662,5 @@ if (redLockActive) {
     })
   </script>
 </body>
+
 </html>

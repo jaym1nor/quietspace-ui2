@@ -4,6 +4,7 @@ Edited and updated to have functionality with other parts of the project by Make
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -49,7 +50,8 @@ Edited and updated to have functionality with other parts of the project by Make
             text-decoration: none;
         }
 
-        .sidebar a:hover, .sidebar a.active {
+        .sidebar a:hover,
+        .sidebar a.active {
             background-color: royalblue;
             color: white;
         }
@@ -128,7 +130,8 @@ Edited and updated to have functionality with other parts of the project by Make
             text-align: left;
         }
 
-        th, td {
+        th,
+        td {
             padding: 12px 15px;
             border-bottom: 1px solid black;
         }
@@ -146,19 +149,34 @@ Edited and updated to have functionality with other parts of the project by Make
             font-weight: bold;
             text-transform: uppercase;
         }
-        .status-green { background-color: #e8f5e9; color: darkgreen; }
-        .status-yellow { background-color: #fffde7; color: #b78103; }
-        .status-red { background-color: #ffebee; color: darkred; }
+
+        .status-green {
+            background-color: #e8f5e9;
+            color: darkgreen;
+        }
+
+        .status-yellow {
+            background-color: #fffde7;
+            color: #b78103;
+        }
+
+        .status-red {
+            background-color: #ffebee;
+            color: darkred;
+        }
 
         /* Threshold Form Styles */
-        .config-form input, .config-form button {
+        .config-form input,
+        .config-form button {
             padding: 8px 12px;
             border-radius: 6px;
             border: 1px solid #ccc;
             margin-right: 10px;
-            margin-bottom: 15px; /* Added a tiny bit of space between the input elements.*/
+            margin-bottom: 15px;
+            /* Added a tiny bit of space between the input elements.*/
             font-size: 14px;
         }
+
         .config-form button {
             background-color: royalblue;
             color: white;
@@ -166,16 +184,21 @@ Edited and updated to have functionality with other parts of the project by Make
             cursor: pointer;
             font-weight: bold;
         }
-        .config-form button:hover { background-color: darkblue; }
-        
-        .config-form{
+
+        .config-form button:hover {
+            background-color: darkblue;
+        }
+
+        .config-form {
             display: flex;
             flex-direction: row;
-            gap: 20px;          
-            width: 100%;        
+            gap: 20px;
+            width: 100%;
             align-items: stretch;
         }
-        .settings-card, .creation-card {
+
+        .settings-card,
+        .creation-card {
             flex: 1;
             background-color: #f9f9f9;
             padding: 20px;
@@ -184,6 +207,7 @@ Edited and updated to have functionality with other parts of the project by Make
         }
     </style>
 </head>
+
 <body>
 
     <nav class="sidebar">
@@ -201,7 +225,7 @@ Edited and updated to have functionality with other parts of the project by Make
         </header>
 
         <main class="container">
-            
+
             <!-- Dynamic Room Monitoring Cards -->
             <section class="stats-grid" id="dynamicRoomsGrid">
                 <!--This section will be used to dynamically hold cards read from the database.-->
@@ -209,30 +233,43 @@ Edited and updated to have functionality with other parts of the project by Make
 
             <!-- Dynamic Admin Controls for staff (Room settings Management) -->
             <section class="data-section config-form">
-                <div class = "settings-card">
+                <div class="settings-card">
                     <h3>Room Settings Controls ⚙️</h3>
-                    <p>Room No. <input type="text" id="targetRoom" placeholder="Room #" style="width: 90px;"></p> <!--Room whose settings will be changed.-->
-                    <p>Quiet/Green Threshold Limit (Decibels): <input type="number" id="greenMax" min="10" placeholder="Min=10"></p> <!--Quiet level threshold.-->
-                    <p>Slightly Loud/Yellow Threshold Limit (Decibels): <input type="number" id="yellowMax" min="15" placeholder="Min=15"></p> <!--Slightly loud threshold.-->
-                    <p>Red Timer (Mins): <input type="number" id="countdownMins"  min="1" max="10" style="width: 150px;" placeholder="Min=1,Max=10"></p> <!--Red cooldown period duration.-->
-                    <p>Microphone Sensitivity: (Multiplier) <input type="number" id="micSensitivity" min="1" max="10" step="0.5" style="width: 150px;" placeholder="Min=1, Max=10"></p> <!--Microphone sensitivity.-->
-                    <p>Background Noise Cancellation <input type="checkbox" id="noiseCancellation" style="transform: scale(1.5); margin-left: 10px;"> </p> <!--Checkbox for turning noise cancellation on or off.-->
-                    <button onclick="sendNewSettings()">Apply Settings</button> <!--Send settings to noise level page for the selected room.-->
+                    <p>Room No. <input type="text" id="targetRoom" placeholder="Room #" style="width: 90px;"></p>
+                    <!--Room whose settings will be changed.-->
+                    <p>Quiet/Green Threshold Limit (Decibels): <input type="number" id="greenMax" min="10"
+                            placeholder="Min=10"></p> <!--Quiet level threshold.-->
+                    <p>Slightly Loud/Yellow Threshold Limit (Decibels): <input type="number" id="yellowMax" min="15"
+                            placeholder="Min=15"></p> <!--Slightly loud threshold.-->
+                    <p>Red Timer (Mins): <input type="number" id="countdownMins" min="1" max="10" style="width: 150px;"
+                            placeholder="Min=1,Max=10"></p> <!--Red cooldown period duration.-->
+                    <p>Microphone Sensitivity: (Multiplier) <input type="number" id="micSensitivity" min="1" max="10"
+                            step="0.5" style="width: 150px;" placeholder="Min=1, Max=10"></p>
+                    <!--Microphone sensitivity.-->
+                    <p>Background Noise Cancellation <input type="checkbox" id="noiseCancellation"
+                            style="transform: scale(1.5); margin-left: 10px;"> </p>
+                    <!--Checkbox for turning noise cancellation on or off.-->
+                    <button onclick="sendNewSettings()">Apply Settings</button>
+                    <!--Send settings to noise level page for the selected room.-->
                 </div>
-                <div class = "creation-card">
+                <div class="creation-card">
                     <h3>Room Creation / Deletion</h3>
                     <p>Room No. <input type="text" id="roomNumber" placeholder="e.g. 301"></p>
                     <p>Action
-                        <select id="userAction" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; margin-left: 10px;">
+                        <select id="userAction"
+                            style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; margin-left: 10px;">
                             <option value="Create">Create</option>
                             <option value="Delete">Delete</option>
                         </select>
                     </p>
                     <div class="room-actions">
-                        <button onclick="handleRoomCRUD()" style="margin-top: 10px;">Submit Request</button> <!--Replaced dummy with an actual CRUD function.-->
-                        <button onclick="document.getElementById('roomMessage').textContent = '';" style="margin-top: 10px;">Clear Message</button>
+                        <button onclick="handleRoomCRUD()" style="margin-top: 10px;">Submit Request</button>
+                        <!--Replaced dummy with an actual CRUD function.-->
+                        <button onclick="document.getElementById('roomMessage').textContent = '';"
+                            style="margin-top: 10px;">Clear Message</button>
                     </div>
-                    <p id="roomMessage" class="room-message" style="margin-top: 10px; font-weight: bold; color: red;"></p>
+                    <p id="roomMessage" class="room-message" style="margin-top: 10px; font-weight: bold; color: red;">
+                    </p>
                 </div>
             </section>
 
@@ -249,7 +286,8 @@ Edited and updated to have functionality with other parts of the project by Make
                     </thead>
                     <tbody id="automatedLogBody">
                         <tr id="auto-placeholder">
-                            <td colspan="3" style="text-align: center; color: #888; font-style: italic;">No automated signals received yet.</td>
+                            <td colspan="3" style="text-align: center; color: #888; font-style: italic;">No automated
+                                signals received yet.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -269,7 +307,8 @@ Edited and updated to have functionality with other parts of the project by Make
                     </thead>
                     <tbody id="studentReportsBody">
                         <tr id="student-placeholder">
-                            <td colspan="4" style="text-align: center; color: #888; font-style: italic;">Waiting for anonymous forms entries...</td>
+                            <td colspan="4" style="text-align: center; color: #888; font-style: italic;">Waiting for
+                                anonymous forms entries...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -284,7 +323,7 @@ Edited and updated to have functionality with other parts of the project by Make
 
     <script>
         // Connect to the operational WebSocket
-        const socket = io(); // Address can be put in parentheses for stuff if needed.
+        const socket = io();
 
         // Establish core reference DOM hooks
         const automatedLogBody = document.getElementById('automatedLogBody');
@@ -292,66 +331,262 @@ Edited and updated to have functionality with other parts of the project by Make
         const dynamicRoomsGrid = document.getElementById('dynamicRoomsGrid');
         const roomMessage = document.getElementById('roomMessage');
 
-        function loadRoomsGrid(){ // CRUD Function used to read rooms from the database and render up needed cards.
+        function loadHistoricalLogs() { // Get old unresolved reports from the database.
+            // Query from rest endpoint to load previous entries
+            fetch('/api/staff/dashboard-data')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.recent_activity && data.recent_activity.length > 0) {
+                        // Filter and render the separate tables based on source mapping
+                        data.recent_activity.forEach(item => {
+                            // Check if item has already been marked as resolved in DB
+                            if (item.resolved) return;
+
+                            const timestamp = new Date(item.reported_at).toLocaleTimeString();
+                            const tr = document.createElement('tr');
+                            tr.id = `report-row-${item.id}`; // Give the row a unique DOM handle
+
+                            if (item.source === 'alert') { // These elements come from automated noise reports.
+                                const placeholder = document.getElementById('auto-placeholder');
+                                if (placeholder) placeholder.remove();
+
+                                let stateClass = item.status === "QUIET" ? "status-green" : (item.status === "WARNING" ? "status-yellow" : "status-red"); // Get the appropriate status
+                                // Make the new report element for the table and fill it with the needed info. This element has 2 buttons to resolve and delete the report.
+                                tr.innerHTML = ` 
+                                <td><b>${item.room_name}</b></td>
+                                <td><span class="status-badge ${stateClass}">${item.status}</span></td>
+                                <td>${timestamp}</td>
+                                <td>
+                                    <button onclick="resolveReport('${item.id}')" style="background:#4caf50; padding:4px 8px; font-size:11px; margin-bottom:0;">Resolve</button>
+                                    <button onclick="deleteReport('${item.id}')" style="background:#f44336; padding:4px 8px; font-size:11px; margin-bottom:0;">Delete</button>
+                                </td>
+                            `;
+                                automatedLogBody.appendChild(tr); // Append the element to the list.
+                            }
+                            else { // These elements come from student made reports. Rest is same as above.
+                                const placeholder = document.getElementById('student-placeholder');
+                                if (placeholder) placeholder.remove();
+                                tr.innerHTML = `
+                                <td><b>${item.room_name}</b></td>
+                                <td><span class="status-badge status-yellow">${(item.noise_type || 'REPORT').replace('_', ' ')}</span></td>
+                                <td><i>${item.details || 'No extended description added.'}</i></td>
+                                <td>${timestamp}</td>
+                                <td>
+                                    <button onclick="resolveReport('${item.id}')" style="background:#4caf50; padding:4px 8px; font-size:11px; margin-bottom:0;">Resolve</button>
+                                    <button onclick="deleteReport('${item.id}')" style="background:#f44336; padding:4px 8px; font-size:11px; margin-bottom:0;">Delete</button>
+                                </td>
+                            `;
+                                studentReportsBody.appendChild(tr);
+                            }
+                        });
+                    }
+                })
+                .catch(err => console.error("Error fetching historical logs:", err));
+        }
+
+        function loadRoomsGrid() { // Make the room cards that correspond to those in the database.
             fetch('/api/rooms')
-            .then(res => res.json())
-            .then(data => {
-                if (data.success && data.rooms.length > 0){
-                    dynamicRoomsGrid.innerHTML = ''; // Clears the grid
-                    data.rooms.forEach(room => {
-                        const roomNum = room.name.replace(/^\D+/g, ''); // Gets only the number for the rooms
-                        const card = document.createElement('div');
-                        card.className = 'card';
-                        card.id = `card-${roomNum}`;
-                        card.innerHTML = `
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.rooms.length > 0) {
+                        dynamicRoomsGrid.innerHTML = '';
+                        data.rooms.forEach(room => {
+                            const roomNum = room.name.replace(/^\D+/g, '');
+                            const card = document.createElement('div');
+                            card.className = 'card';
+                            card.id = `card-${roomNum}`; // Begin making the element for the new room.
+                            card.innerHTML = `
                             <h3>${room.name}</h3>
                             <p>Current Level: <strong id="level-${roomNum}">--</strong></p>
                             <p>Last Updated: <span id="time-${roomNum}">--:--:--</span></p>
-                            <p>Status: <span id="status-${roomNum}" class="status-badge status-green">Quiet </span></p>
-                            `;
-                        dynamicRoomsGrid.appendChild(card);
-                    });
-                }
-                else{
-                    dynamicRoomsGrid.innerHTML = '<p style="grid-column: 1/-1; color #666: font-style: italic;">No active rooms found in the database. Used creation panel below to create one.</p>';
-                }
-            })
-            .catch(err => console.error("Error fetching rooms:", err));
+                            <p>Status: <span id="status-${roomNum}" class="status-badge status-green">QUIET</span></p>
+                        `;
+                            dynamicRoomsGrid.appendChild(card); // Apppend it to the card area.
+                        });
+                    } else {
+                        dynamicRoomsGrid.innerHTML = '<p style="grid-column: 1/-1; color: #666; font-style: italic;">No active rooms found in the database. Use the creation panel below to add one.</p>';
+                    }
+                })
+                .catch(err => console.error("Error fetching rooms:", err));
         }
 
-        socket.on('connect', () =>{ // On boot up or refresh of the dashboard, this will make the page read the database and create room cards as needed.
-            console.log("Successfully connected to the database, Rooms should be loaded!");
+        // Trigger full initialization upon connecting
+        socket.on('connect', () => {
+            console.log("Dashboard connected to server successfully!");
             loadRoomsGrid();
-        })
+            loadHistoricalLogs(); // Pull logs straight out of MongoDB on boot and reload.
+        });
 
-        function handleRoomCRUD(){ // CRUD Function used to create and delete rooms.
+        function resolveReport(id) { // Handles marking reports as resolved removing them from the dashboard and database.
+            if (confirm("Mark this incident log as resolved?")) {
+                socket.emit('resolve_report', { report_id: id });
+            }
+        }
+
+        function deleteReport(id) { // Handles deleting and removing reports from the dashboard and database.
+            if (confirm("Permanently erase this record from MongoDB history?")) {
+                socket.emit('delete_report', { report_id: id });
+            }
+        }
+
+        // Listen for resolution/deletion confirmations from server to clean up the UI
+        socket.on('report_status_updated', (data) => {
+            const row = document.getElementById(`report-row-${data.report_id}`);
+            if (row) {
+                // Once the report has been resolved or deleted room from the dashboard.
+                row.remove();
+                console.log(`Incident record ${data.report_id} successfully ${data.action} inside UI view grid.`);
+            }
+        });
+
+        socket.on('noise_update', (data) => {  // Creates the automated noise reports that appear on the dashboard.
+            const roomNum = data.room; // Gets all the info needed.
+            const statusVal = data.status;
+            const timestamp = new Date(data.timestamp).toLocaleTimeString();
+
+            const levelEl = document.getElementById(`level-${roomNum}`);
+            const timeEl = document.getElementById(`time-${roomNum}`);
+            const statusEl = document.getElementById(`status-${roomNum}`);
+            const cardEl = document.getElementById(`card-${roomNum}`);
+
+            if (levelEl && timeEl && statusEl) { // Check status to see what the status is.
+                timeEl.textContent = timestamp;
+                statusEl.textContent = statusVal;
+                statusEl.className = "status-badge";
+                if (statusVal === "QUIET") {
+                    statusEl.classList.add("status-green");
+                    if (cardEl) cardEl.style.borderLeftColor = "darkgreen";
+                    if (levelEl) levelEl.textContent = "Low";
+                } else if (statusVal === "WARNING") {
+                    statusEl.classList.add("status-yellow");
+                    if (cardEl) cardEl.style.borderLeftColor = "#ffd966";
+                    if (levelEl) levelEl.textContent = "Medium";
+                } else {
+                    statusEl.classList.add("status-red");
+                    if (cardEl) cardEl.style.borderLeftColor = "darkred";
+                    if (levelEl) levelEl.textContent = "HIGH";
+                }
+            }
+
+            const placeholder = document.getElementById('auto-placeholder');
+            if (placeholder) placeholder.remove();
+
+            const tr = document.createElement('tr'); // Begin making new element to add to the table
+            tr.id = `report-row-${data._id}`; // Handle string id fallback safely
+            let stateClass = statusVal === "QUIET" ? "status-green" : (statusVal === "WARNING" ? "status-yellow" : "status-red"); // If not green, then yellow, if not yellow then red.
+            tr.innerHTML = `
+            <td><b>Room ${roomNum}</b></td>
+            <td><span class="status-badge ${stateClass}">${statusVal}</span></td>
+            <td>${timestamp}</td>
+            <td>
+                <button onclick="resolveReport('${data._id}')" style="background:#4caf50; padding:4px 8px; font-size:11px; margin-bottom:0;">Resolve</button>
+                <button onclick="deleteReport('${data._id}')" style="background:#f44336; padding:4px 8px; font-size:11px; margin-bottom:0;">Delete</button>
+            </td>
+        `;
+            automatedLogBody.prepend(tr); // Append it to the automated report table.
+        });
+
+        socket.on('dashboard_new_report', (data) => { // Creates the manual student filled reports for the dashboard.
+            const placeholder = document.getElementById('student-placeholder');
+            if (placeholder) placeholder.remove();
+
+            const timestamp = new Date(data.timestamp).toLocaleTimeString();
+            const tr = document.createElement('tr');
+            tr.id = `report-row-${data._id}`; // Get the neeeded info and begin making the element.
+            tr.innerHTML = `
+            <td><b>Room ${data.room}</b></td>
+            <td><span class="status-badge status-yellow">${(data.noiseType || 'REPORT').replace('_', ' ')}</span></td>
+            <td><i>${data.details || 'No extended description added.'}</i></td>
+            <td>${timestamp}</td>
+            <td>
+                <button onclick="resolveReport('${data._id}')" style="background:#4caf50; padding:4px 8px; font-size:11px; margin-bottom:0;">Resolve</button>
+                <button onclick="deleteReport('${data._id}')" style="background:#f44336; padding:4px 8px; font-size:11px; margin-bottom:0;">Delete</button>
+            </td>
+        `;
+            studentReportsBody.prepend(tr); // Append element to the student report table.
+        });
+
+        socket.on('live_room_ping', (data) => { // The same live noise detection. Used to give live updates on a room's status and noise level
+            const roomNum = data.room;
+            const statusVal = data.status;
+            const timestamp = new Date(data.timestamp).toLocaleTimeString(); // Get the room info as needed.
+
+            const levelEl = document.getElementById(`level-${roomNum}`); // Start matching the elements to the room number.
+            const timeEl = document.getElementById(`time-${roomNum}`);
+            const statusEl = document.getElementById(`status-${roomNum}`);
+            const cardEl = document.getElementById(`card-${roomNum}`);
+
+            if (levelEl && timeEl && statusEl) { // Now show status, time and noise level.
+                levelEl.textContent = `${data.level} (Raw)`;
+                timeEl.textContent = timestamp;
+                statusEl.textContent = statusVal === "GREEN" ? "QUIET" : (statusVal === "YELLOW" ? "WARNING" : "TOO LOUD");
+
+                statusEl.className = "status-badge";
+                if (statusVal === "GREEN") {
+                    statusEl.classList.add("status-green");
+                    if (cardEl) cardEl.style.borderLeftColor = "darkgreen";
+                } else if (statusVal === "YELLOW") {
+                    statusEl.classList.add("status-yellow");
+                    if (cardEl) cardEl.style.borderLeftColor = "#ffd966";
+                } else {
+                    statusEl.classList.add("status-red");
+                    if (cardEl) cardEl.style.borderLeftColor = "darkred";
+                }
+            }
+        });
+
+        function handleRoomCRUD() { // CRUD Function used to create and delete rooms.
             const roomNumber = document.getElementById('roomNumber').value.trim();
             const action = document.getElementById('userAction').value;
 
-            if(!roomNumber){ // Check to ensure a number is entered.
+            if (!roomNumber) { // Check to ensure a number is entered.
                 alert("Please enter a room number.");
                 return;
             }
 
-            const endpoint = action === 'Create' ? '/api/rooms/create' : '/api/rooms/delete'; // What action will be choosen create or delete?
-
-            fetch(endpoint,{
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({roomNumber: roomNumber})
-            })
-            .then(res => res.json())
-            .then( data => {
-                roomMessage.textContent = data.message;
-                if (data.success){
-                    document.getElementById('roomNumber').value = '';
-                    loadRoomsGrid();
-                }
-            })
-            .catch(err => {
-                roomMessage.textContent = "Network error occured.";
-                console.error(err);
-            });
+            switch (action) { // Updated this to use a switch, now it looks a lot cleaner. Still looks at choosen action to decide wheter to create or delete a room
+                case "Create": // Create is choosen so make a room as needed.
+                    endpoint = '/api/rooms/create';
+                    fetch(endpoint, {
+                        method: 'POST', // Use the appropriate method, in this case POST to create.
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ roomNumber: roomNumber })
+                    })
+                        .then(res => res.json())
+                        .then(data => { // After the response is received, the page will then update with the received data and dynamically add a new room card.
+                            roomMessage.textContent = data.message;
+                            if (data.success) {
+                                document.getElementById('roomNumber').value = '';
+                                loadRoomsGrid();
+                            }
+                        })
+                        .catch(err => {
+                            roomMessage.textContent = "Network error occured.";
+                            console.error(err);
+                        });
+                    break;
+                case "Delete": // Delete is choosen so make a room as needed.
+                    endpoint = '/api/rooms/delete';
+                    fetch(endpoint, {
+                        method: 'DELETE', // Use the appropriate method, in this case DELETE to delete.
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ roomNumber: roomNumber })
+                    })
+                        .then(res => res.json())
+                        .then(data => { // After the response is received...the page will then update with the received data and dynamically remove a room card.
+                            method: 'DELETE',
+                                roomMessage.textContent = data.message;
+                            if (data.success) {
+                                document.getElementById('roomNumber').value = '';
+                                loadRoomsGrid();
+                            }
+                        })
+                        .catch(err => {
+                            roomMessage.textContent = "Network error occured.";
+                            console.error(err);
+                        });
+                    break;
+            }
         }
 
         // 1. Listen to live noise from active room mics.
@@ -375,16 +610,16 @@ Edited and updated to have functionality with other parts of the project by Make
                 statusEl.className = "status-badge"; // Starts here by default.
                 if (statusVal === "QUIET") {
                     statusEl.classList.add("status-green");
-                    if(cardEl) cardEl.style.borderLeftColor = "darkgreen";
-                    if(levelEl) levelEl.textContent = "Low";
+                    if (cardEl) cardEl.style.borderLeftColor = "darkgreen";
+                    if (levelEl) levelEl.textContent = "Low";
                 } else if (statusVal === "WARNING") {
                     statusEl.classList.add("status-yellow");
-                    if(cardEl) cardEl.style.borderLeftColor = "#ffd966";
-                    if(levelEl) levelEl.textContent = "Medium";
+                    if (cardEl) cardEl.style.borderLeftColor = "#ffd966";
+                    if (levelEl) levelEl.textContent = "Medium";
                 } else {
                     statusEl.classList.add("status-red");
-                    if(cardEl) cardEl.style.borderLeftColor = "darkred";
-                    if(levelEl) levelEl.textContent = "HIGH";
+                    if (cardEl) cardEl.style.borderLeftColor = "darkred";
+                    if (levelEl) levelEl.textContent = "HIGH";
                 }
             }
 
@@ -402,76 +637,26 @@ Edited and updated to have functionality with other parts of the project by Make
             automatedLogBody.prepend(tr);
         });
 
-        // 2. Listen out for sent student filled reports
-        socket.on('dashboard_new_report', (data) => {
-            const placeholder = document.getElementById('student-placeholder');
-            if (placeholder) placeholder.remove();
 
-            const timestamp = new Date(data.timestamp).toLocaleTimeString();
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><b>Room ${data.room}</b></td>
-                <td><span class="status-badge status-yellow">${data.noiseType.replace('_', ' ')}</span></td>
-                <td><i>${data.details || 'No extended description added.'}</i> ${data.otherDetails ? `<br><small>(${data.otherDetails})</small>` : ''}</td>
-                <td>${timestamp}</td>
-            `;
-            studentReportsBody.prepend(tr);
-        });
-
-        // 3. Send audio setting adjustments from this dashboard to apply to noise level page of a room.
-        function sendNewSettings() {
+        function sendNewSettings() { // Function that handles sending dashboard defined settings to the selected room of their choice.
             const thresholdData = {
-                room: document.getElementById('targetRoom').value, // Room to look for
-                greenMax: parseInt(document.getElementById('greenMax').value), // Green threshold value
-                yellowMax: parseInt(document.getElementById('yellowMax').value), // Yellow threshold value
-                countdownMins: parseInt(document.getElementById('countdownMins').value), // Added the option to change the cooldown timer once red state is hit.
-                micSensitivity: parseFloat(document.getElementById('micSensitivity').value), // Added mic sensitivity to send.
-                noiseCancellation: document.getElementById('noiseCancellation').checked // Added noise cancellation option to send.
+                room: document.getElementById('targetRoom').value,
+                greenMax: parseInt(document.getElementById('greenMax').value),
+                yellowMax: parseInt(document.getElementById('yellowMax').value),
+                countdownMins: parseInt(document.getElementById('countdownMins').value),
+                micSensitivity: parseFloat(document.getElementById('micSensitivity').value),
+                noiseCancellation: document.getElementById('noiseCancellation').checked
             };
 
             if (!thresholdData.room) {
                 alert("Please declare a targeted room number.");
                 return;
             }
-            
+
             socket.emit('change_settings', thresholdData);
             alert(`Threshold configuration transmitted for Room ${thresholdData.room}!`);
         }
-
-    // Listen for continuous live room updates
-    socket.on('live_room_ping', (data) => {
-        const roomNum = data.room;
-        const statusVal = data.status; // "GREEN", "YELLOW", or "RED"
-        const timestamp = new Date(data.timestamp).toLocaleTimeString();
-
-        // Grab the target elements on the specific room card
-        const levelEl = document.getElementById(`level-${roomNum}`);
-        const timeEl = document.getElementById(`time-${roomNum}`);
-        const statusEl = document.getElementById(`status-${roomNum}`);
-        const cardEl = document.getElementById(`card-${roomNum}`);
-
-        if (levelEl && timeEl && statusEl) {
-            // Update the card metrics instantly
-            levelEl.textContent = `${data.level} (Raw)`;
-            timeEl.textContent = timestamp;
-            
-            // Translate backend statuses to match the UI layout names
-            statusEl.textContent = statusVal === "GREEN" ? "QUIET" : (statusVal === "YELLOW" ? "WARNING" : "TOO LOUD");
-
-            // Dynamically shift colors to match the room display's state in real time
-            statusEl.className = "status-badge"; 
-            if (statusVal === "GREEN") {
-                statusEl.classList.add("status-green");
-                if(cardEl) cardEl.style.borderLeftColor = "darkgreen";
-            } else if (statusVal === "YELLOW") {
-                statusEl.classList.add("status-yellow");
-                if(cardEl) cardEl.style.borderLeftColor = "#ffd966";
-            } else {
-                statusEl.classList.add("status-red");
-                if(cardEl) cardEl.style.borderLeftColor = "darkred";
-            }
-        }
-    });
     </script>
 </body>
+
 </html>
