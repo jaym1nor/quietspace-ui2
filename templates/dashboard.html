@@ -527,9 +527,10 @@ Edited and updated to have functionality with other parts of the project by Make
         });
 
         socket.on('noise_update', (data) => {  // Creates the automated noise reports that appear on the dashboard.
-            const roomNum = data.room; // Gets all the info needed.
+            const roomNum = data.room; // Gets all the info needed. Room number, status and time.
             const statusVal = data.status;
             const timestamp = new Date(data.timestamp).toLocaleTimeString();
+            const mongoId = data.id; // Data id string
 
             const levelEl = document.getElementById(`level-${roomNum}`);
             const timeEl = document.getElementById(`time-${roomNum}`);
@@ -540,6 +541,7 @@ Edited and updated to have functionality with other parts of the project by Make
                 timeEl.textContent = timestamp;
                 statusEl.textContent = statusVal;
                 statusEl.className = "status-badge";
+
                 if (statusVal === "QUIET") {
                     statusEl.classList.add("status-green");
                     if (cardEl) cardEl.style.borderLeftColor = "darkgreen";
@@ -559,7 +561,8 @@ Edited and updated to have functionality with other parts of the project by Make
             if (placeholder) placeholder.remove();
 
             const tr = document.createElement('tr'); // Begin making new element to add to the table
-            tr.id = `report-row-${data._id}`; // Handle string id fallback safely
+            tr.id = `report-row-${mongoId}`; // Handle string id fallback safely
+
             let stateClass = statusVal === "QUIET" ? "status-green" : (statusVal === "WARNING" ? "status-yellow" : "status-red"); // If not green, then yellow, if not yellow then red.
             tr.innerHTML = `
             <td><b>Room ${roomNum}</b></td>
@@ -675,55 +678,6 @@ Edited and updated to have functionality with other parts of the project by Make
                     break;
             }
         }
-
-        // 1. Listen to live noise from active room mics.
-        socket.on('noise_update', (data) => {
-            const roomNum = data.room;
-            const statusVal = data.status; // e.g. "QUIET", "WARNING", "TOO LOUD"
-            const timestamp = new Date(data.timestamp).toLocaleTimeString();
-
-            // Track target individual components
-            const levelEl = document.getElementById(`level-${roomNum}`);
-            const timeEl = document.getElementById(`time-${roomNum}`);
-            const statusEl = document.getElementById(`status-${roomNum}`);
-            const cardEl = document.getElementById(`card-${roomNum}`);
-
-            // Update UI card metrics dynamically if card exists
-            if (levelEl && timeEl && statusEl) {
-                timeEl.textContent = timestamp;
-                statusEl.textContent = statusVal;
-
-                // Adjust colors matching severity classes
-                statusEl.className = "status-badge"; // Starts here by default.
-                if (statusVal === "QUIET") {
-                    statusEl.classList.add("status-green");
-                    if (cardEl) cardEl.style.borderLeftColor = "darkgreen";
-                    if (levelEl) levelEl.textContent = "Low";
-                } else if (statusVal === "WARNING") {
-                    statusEl.classList.add("status-yellow");
-                    if (cardEl) cardEl.style.borderLeftColor = "#ffd966";
-                    if (levelEl) levelEl.textContent = "Medium";
-                } else {
-                    statusEl.classList.add("status-red");
-                    if (cardEl) cardEl.style.borderLeftColor = "darkred";
-                    if (levelEl) levelEl.textContent = "HIGH";
-                }
-            }
-
-            // Append into history tracking log table
-            const placeholder = document.getElementById('auto-placeholder');
-            if (placeholder) placeholder.remove();
-
-            const tr = document.createElement('tr');
-            let stateClass = statusVal === "QUIET" ? "status-green" : (statusVal === "WARNING" ? "status-yellow" : "status-red");
-            tr.innerHTML = `
-                <td><b>Room ${roomNum}</b></td>
-                <td><span class="status-badge ${stateClass}">${statusVal}</span></td>
-                <td>${timestamp}</td>
-            `;
-            automatedLogBody.prepend(tr);
-        });
-
 
         function sendNewSettings() { // Function that handles sending dashboard defined settings to the selected room of their choice.
             const thresholdData = {

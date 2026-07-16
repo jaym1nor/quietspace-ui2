@@ -112,7 +112,7 @@ def handle_noise_alert(data):
     now      = datetime.now(timezone.utc)
     room_doc = _find_room(room_identifier)
 
-    noise_reports().insert_one({
+    result = noise_reports().insert_one({
         "room_id":       room_doc["_id"] if room_doc else None,
         "room_name":     room_doc["name"] if room_doc else f"Room {room_identifier}",
         "source":        "alert",
@@ -127,7 +127,10 @@ def handle_noise_alert(data):
         "resolved_at":   None,
     })
 
+    inserted_id = str(result.inserted_id)
+
     socketio.emit("noise_update", {
+        "id":        inserted_id,
         "room":      room_identifier,
         "status":    status,
         "timestamp": now.isoformat(),
@@ -155,7 +158,7 @@ def handle_report(data):
     }
 
     # CRUD - The Create Part
-    noise_reports().insert_one(report_document) # Insert the report into the database.
+    noise_reports().insert_one(report_document) # Insert the report into the database. (Only works for rooms added into the database and are on the dashboard.)
     emit('report_received', {'success':True, 'message': 'Report Submitted Successfully'}) # Let the user who sent the report know it was sent correctly.
     
     if '_id' in report_document: # Convert to string before JSON serialization to avoid typeerror
