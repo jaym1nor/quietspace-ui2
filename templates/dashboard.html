@@ -17,6 +17,10 @@ Edited and updated to have functionality with other parts of the project by Make
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             display: flex;
             background-color: lightgray;
@@ -25,35 +29,9 @@ Edited and updated to have functionality with other parts of the project by Make
             font-family: sans-serif;
         }
 
-        .sidebar {
-            width: 240px;
-            background-color: darkblue;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-        }
-
-        .sidebar h2 {
-            font-size: 20px;
-            margin-bottom: 30px;
-            text-align: center;
-            color: lightblue;
-        }
-
-        .sidebar a {
-            color: white;
-            padding: 12px 15px;
-            margin-bottom: 8px;
-            border-radius: 6px;
-            display: block;
-            text-decoration: none;
-        }
-
-        .sidebar a:hover,
-        .sidebar a.active {
+        .off-screen-menu li:hover,
+        .off-screen-menu li.active {
             background-color: royalblue;
-            color: white;
         }
 
         .main-content {
@@ -205,23 +183,129 @@ Edited and updated to have functionality with other parts of the project by Make
             border-radius: 8px;
             box-shadow: 0 4px 6px gray;
         }
+
+        .off-screen-menu{
+            background-color: blue;
+            color: white;
+            height: 100vh;
+            max-width: 450px;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            right: -450px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+            text-align: left;
+            font-size: 3rem;
+            padding: 2rem;
+            box-sizing: border-box;
+            transition: .3s ease;   
+        }
+
+        .off-screen-menu.active{
+            left:0;
+        }
+
+        .off-screen-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0 0;
+        }
+
+        .off-screen-menu li {
+            text-align: left;
+        }
+
+        .off-screen-menu .menu-link {
+            background: none;
+            border: none;
+            color: inherit;
+            font: inherit;
+            padding: 0.25rem 0;
+            cursor: pointer;
+            text-align: left;
+            display: block;
+        }
+
+        .off-screen-menu h2 {
+            margin: 0;
+        }
+
+        nav{
+            padding:1rem;
+            display:flex;
+        }
+
+        .hamburger-menu{
+            height: 50px;
+            width:50px;
+            margin-right:auto;
+            position: relative;
+        }
+
+        .hamburger-menu span{
+            height: 5px;
+            width:100%;
+            background-color: darkblue;
+            border-radius: 25px;
+            position:absolute;
+            top:50%;
+            right:50%;
+            transform: translate(-50%,-50%);
+            transition: .3s ease;
+        }
+
+        .hamburger-menu span:nth-child(1){
+            top:25%;
+        }
+
+        .hamburger-menu span:nth-child(3){
+            top:75%;
+        }
+
+        .hamburger-menu.active span:nth-child(1){
+            top:50%;
+            transform: translate(-50%,-50%) rotate(45deg);
+        }
+
+        .hamburger-menu.active span:nth-child(2){
+            opacity:0;
+        }
+
+        .hamburger-menu.active span:nth-child(3){
+            top:50%;
+            transform: translate(-50%,-50%) rotate(-45deg);
+        }
+
+
     </style>
 </head>
 
 <body>
 
-    <nav class="sidebar">
-        <h2>Staff Portal</h2>
-        <a href="#">Room Status</a>
-        <a href="#">Room Settings</a>
-        <a href="#">QuietScore Reports</a>
-        <a href="#">Student Reports</a>
-        <a href="#">Analytics</a>
-    </nav>
+    <div class = "off-screen-menu">
+        <h2>Naviagtion</h2>
+        <ul>
+            <li><button type="button" class="menu-link" data-target="dynamicRoomsGrid">Room Status</button></li>
+            <li><button type="button" class="menu-link" data-target="room-settings">Room Settings</button></li>
+            <li><button type="button" class="menu-link" data-target="quietscore-reports">QuietScore Reports</button></li>
+            <li><button type="button" class="menu-link" data-target="student-reports">Student Reports</button></li>
+            <li><button type="button" class="menu-link" data-target="analytics">Analytics</button></li>
+        </ul>
+    </div>
 
     <div class="main-content">
         <header>
             <h1>QuietSpace Dashboard</h1>
+                <nav>
+                    <div class = "hamburger-menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </nav>
         </header>
 
         <main class="container">
@@ -232,7 +316,7 @@ Edited and updated to have functionality with other parts of the project by Make
             </section>
 
             <!-- Dynamic Admin Controls for staff (Room settings Management) -->
-            <section class="data-section config-form">
+            <section class="data-section config-form" id="room-settings">
                 <div class="settings-card">
                     <h3>Room Settings Controls ⚙️</h3>
                     <p>Room No. <input type="text" id="targetRoom" placeholder="Room #" style="width: 90px;"></p>
@@ -274,7 +358,7 @@ Edited and updated to have functionality with other parts of the project by Make
             </section>
 
             <!-- Live Automated Log -->
-            <section class="data-section">
+            <section class="data-section" id="quietscore-reports">
                 <h3>QuietScore Automated History Log</h3>
                 <table>
                     <thead>
@@ -294,7 +378,7 @@ Edited and updated to have functionality with other parts of the project by Make
             </section>
 
             <!-- Live Student Forms Submission Log -->
-            <section class="data-section">
+            <section class="data-section" id="student-reports">
                 <h3>Student Submitted Reports</h3>
                 <table>
                     <thead>
@@ -314,7 +398,7 @@ Edited and updated to have functionality with other parts of the project by Make
                 </table>
             </section>
 
-            <section class="data-section">
+            <section class="data-section" id="analytics">
                 <h3>Analytics</h3>
                 <p style="color: #666; font-style: italic;">MongoDB system integration tracking coming soon!.</p>
             </section>
@@ -330,6 +414,9 @@ Edited and updated to have functionality with other parts of the project by Make
         const studentReportsBody = document.getElementById('studentReportsBody');
         const dynamicRoomsGrid = document.getElementById('dynamicRoomsGrid');
         const roomMessage = document.getElementById('roomMessage');
+
+        const hamMenu = document.querySelector('.hamburger-menu');
+        const offScreenMenu = document.querySelector('.off-screen-menu');
 
         function loadHistoricalLogs() { // Get old unresolved reports from the database.
             // Query from rest endpoint to load previous entries
@@ -656,6 +743,26 @@ Edited and updated to have functionality with other parts of the project by Make
             socket.emit('change_settings', thresholdData);
             alert(`Threshold configuration transmitted for Room ${thresholdData.room}!`);
         }
+
+        hamMenu.addEventListener('click',() =>{
+            hamMenu.classList.toggle('active');
+            offScreenMenu.classList.toggle('active');
+        })
+
+        document.querySelectorAll('.menu-link').forEach(link => {
+            link.addEventListener('click', () => {
+                const targetId = link.getAttribute('data-target');
+                const target = document.getElementById(targetId);
+
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+
+                hamMenu.classList.remove('active');
+                offScreenMenu.classList.remove('active');
+            });
+        });
+
     </script>
 </body>
 
