@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 import os # Somehow this import was missing
 import logging # Somehow this import was missing
 from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
 from bson import ObjectId
 import secrets
 
@@ -56,7 +57,7 @@ def report():
 # REST endpoints
 @app.route("/api/staff/dashboard-data") # CRUD - Reads the data.
 def staff_dashboard_data():
-    # Returns recent alerts and reports from MongoDB for the staff dashboard."""
+    # Returns recent alerts and reports from MongoDB for the staff dashboard.
     recent = list(
         noise_reports()
         .find({}, {"_id": 1, "room_name": 1, "source": 1, "status": 1,
@@ -65,7 +66,7 @@ def staff_dashboard_data():
         .limit(50)
     )
     for r in recent:
-        r["id"] = str(r["_id"])          #  Extract the raw BSON ObjectId to a clean string string
+        r["id"] = str(r["_id"])          #  Extract the raw BSON ObjectId to a clean string
         del r["_id"]                     # Clean up raw dictionary object to make it serializable
         r["reported_at"] = r["reported_at"].isoformat()
  
@@ -77,7 +78,7 @@ def staff_dashboard_data():
             "total_alerts":    total_alerts,
             "total_reports":   total_reports,
             "total_incidents": total_alerts + total_reports,
-            "last_updated":    datetime.now(timezone.utc).isoformat(),
+            "last_updated":    datetime.now().isoformat(),
         },
         "recent_activity": recent,
     })
@@ -109,7 +110,7 @@ def handle_noise_alert(data):
         return
 
     log.info("Alert: Room %s is %s", room_identifier, status)
-    now      = datetime.now(timezone.utc)
+    now      = datetime.now()
     room_doc = _find_room(room_identifier)
 
     result = noise_reports().insert_one({
@@ -141,9 +142,9 @@ def handle_noise_alert(data):
 def handle_report(data):
     room_identifier = str(data.get('room', '')).strip() # Get room id.
     room_doc = _find_room(room_identifier) # Locates the target room we are look for.
-    now = datetime.now(timezone.utc)
+    now = datetime.now()
 
-    report_document = {
+    report_document = { # Get the info for the report ready, this will be sent to the database.
         'room_id': room_doc["_id"] if room_doc else None,
         'room_name': room_doc["name"] if room_doc else f"Room{room_identifier}",
         'source': "report",
@@ -193,21 +194,6 @@ def handle_room_ping(data):
     }
     socketio.emit('live_room_ping', payload) #...then send to dashboard to update that page with the latest info.
 
-
-@socketio.on('resolve_incident') # CRUD - Update the report state to be resolved.
-def handle_resolved_incident(data):
-    report_id = data.get('report_id')
-
-    if report_id: # If a report id is there, update that report to be resolved and say when it was resolved.
-        noise_reports().update_one(
-            {"_id": report_id},
-            {"$set": {
-                "resolved": True,
-                "resolved_at": datetime.now(timezone.utc)
-            }}
-        )
-        socketio.emit('incident_resolved', {"report_id": str(report_id)}) # Notify the dashboard of the resolved incident.
-
 # 1. CRUD - UPDATE: Mark a specific report as resolved in MongoDB
 @socketio.on('resolve_report')
 def handle_resolve_report(data):
@@ -225,7 +211,7 @@ def handle_resolve_report(data):
             {"_id": report_id},
             {"$set": {
                 "resolved": True,
-                "resolved_at": datetime.now(timezone.utc)
+                "resolved_at": datetime.now()
             }}
         )
         log.info(f"📁 [DATABASE UPDATE] Report {report_id_str} marked as resolved.")
@@ -256,27 +242,8 @@ def handle_delete_report(data):
         print(f"Error deleting report: {e}")
 
 
-@socketio.on('delete_report')
-def handle_delete_report(data):
-    report_id_str = data.get('report_id')
-    if not report_id_str:
-        return
-        
-    try:
-        from bson import ObjectId
-        report_id = ObjectId(report_id_str)
-        
-        # Erase the document from the database collection
-        noise_reports().delete_one({"_id": report_id})
-        log.info(f"🗑️ [DATABASE DELETE] Report {report_id_str} deleted entirely.")
-        
-        # Broadcast the deletion out to all open dashboards so they drop it from the UI list
-        socketio.emit('report_status_updated', {"report_id": report_id_str, "action": "deleted"})
-    except Exception as e:
-        print(f"Error deleting report: {e}")
-
 def purge_old_records(days_limit = 30): # CRUD - Handle deleting old reports.
-    cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_limit) # Set a cutoff day, delete reports after they've stayed till this day.
+    cutoff_date = datetime.now() - timedelta(days=days_limit) # Set a cutoff day, delete reports after they've stayed till this day.
 
     result = noise_reports().delete_many({"reported_at": {"#lt": cutoff_date}})
     log.info("Purged %d old noise reports.", result.deleted_count)
@@ -319,7 +286,7 @@ def create_room():
         "is_active": True,
         "capacity": 4,
         "tags": ["quiet-zone"],
-        "created_at": datetime.now(timezone.utc)
+        "created_at": datetime.now()
     }
 
     rooms().insert_one(new_room) # Create the new room
