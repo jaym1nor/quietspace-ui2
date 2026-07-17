@@ -15,7 +15,7 @@ import secrets
 
 load_dotenv()
 
-from db.collections import init_collections, rooms, noise_reports
+from db.collections import init_collections, rooms, noise_reports, get_nearby_rooms, update_nearby_rooms
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger(__name__)
@@ -31,6 +31,7 @@ ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000").spl
 CORS(app, origins=ALLOWED_ORIGINS, supports_credentials=True)
 socketio = SocketIO(app, cors_allowed_origins=ALLOWED_ORIGINS)
 
+room_states = {}
 
 def _find_room(room_identifier: str):
     """Looks up a room by exact name or room number. Uses $eq to prevent injection."""
@@ -182,6 +183,7 @@ def handle_change_settings(data):
 
 @socketio.on('room_ping') # Event handler for room pinging updates.
 def handle_room_ping(data):
+    room_states[data.get('room')] = data.get('status').lower()
     # Log it locally if you want to verify, or leave it quiet to avoid terminal clutter
     print(f"Heartbeat: Room {data.get('room')} is currently {data.get('status')} (Level: {data.get('level')})")
 
@@ -228,7 +230,7 @@ def handle_resolve_report(data):
                 "resolved_at": datetime.now(timezone.utc)
             }}
         )
-        log.info(f"📁 [DATABASE UPDATE] Report {report_id_str} marked as resolved.")
+        log.info(f" [DATABASE UPDATE] Report {report_id_str} marked as resolved.")
         
         # Broadcast the resolution out to all open dashboard screens so they can update their UI
         socketio.emit('report_status_updated', {"report_id": report_id_str, "action": "resolved"})
@@ -248,7 +250,7 @@ def handle_delete_report(data):
         
         # Erase the document from the database collection
         noise_reports().delete_one({"_id": report_id})
-        log.info(f"🗑️ [DATABASE DELETE] Report {report_id_str} deleted entirely.")
+        log.info(f" [DATABASE DELETE] Report {report_id_str} deleted entirely.")
         
         # Broadcast the deletion out to all open dashboards so they drop it from the UI list
         socketio.emit('report_status_updated', {"report_id": report_id_str, "action": "deleted"})
@@ -268,7 +270,7 @@ def handle_delete_report(data):
         
         # Erase the document from the database collection
         noise_reports().delete_one({"_id": report_id})
-        log.info(f"🗑️ [DATABASE DELETE] Report {report_id_str} deleted entirely.")
+        log.info(f" [DATABASE DELETE] Report {report_id_str} deleted entirely.")
         
         # Broadcast the deletion out to all open dashboards so they drop it from the UI list
         socketio.emit('report_status_updated', {"report_id": report_id_str, "action": "deleted"})
@@ -291,7 +293,8 @@ def get_all_rooms():
             serialized_rooms.append({
                 "id": str(rm["_id"]),
                 "name": rm["name"],
-                "qr_token": rm["qr_token"]
+                "qr_token": rm["qr_token"],
+                "nearby_rooms": rm.get("nearby_rooms", [])
             })
         return jsonify({"success": True, "rooms": serialized_rooms})
     except Exception as e:
@@ -342,6 +345,65 @@ def delete_room():
 
     return jsonify({"success": True, "message": f"Successfully delete Room {room_no}"})
 
+@app.route('/api/rooms/<room_id>', methods=['PUT']) #CRUD UPDATE, handles changing information in rooms
+def update_room(room_id):
+    data = request.get_json()
+    
+    #find the room
+    room_doc = _find_room(room_id)
+    if not room_doc:
+        return jsonify(({'success': False, 'message': 'Room not found'}), 404
+                       
+    old_name = room_doc.get('name','')
+    update_fields = {}
+
+    #Handle name change
+    if 'name' in data:
+        new_name = str(data['name']).strip()
+        if new_name and new_name != old_name:
+            update_fields['name'] = new_name
+            # Update references in other rooms
+            rooms().update_many(
+                {"nearby_rooms": old_name},
+                {"$set": {"nearby_rooms.$": new_name}}
+            )
+            rooms().update_many(
+                {"nearby_rooms": room_id},
+                {"$set": {"nearby_rooms.$": new_name}}
+            )
+    # update nearby rooms
+    if 'nearby_rooms' in data:
+        nearby_list = data['nearby_rooms']
+        if not isinstance(nearby_list, list):
+            return jsonify({'error': 'nearby_rooms must be a list'}), 400
+        #function checks internally for changes so no filtering is needed before the call
+        update_nearby_rooms(room_id, nearby_list)
+
+    # Handle other fields
+    if 'is_active' in data:
+        update_fields['is_active'] = bool(data['is_active'])
+    
+    # Apply updates
+    if update_fields:
+        rooms().update_one(
+            {"_id": room_doc["_id"]},
+            {"$set": update_fields}
+        )
+
+    # Build a list of what changed to be sent in confirmation
+    changes = []
+    if 'name' in data and new_name != old_name:
+        changes.append(f"name: '{old_name}' → '{new_name}'")
+    if 'nearby_rooms' in data:
+        changes.append("nearby rooms updated")
+    if 'is_active' in data:
+        changes.append(f"status: {'active' if data['is_active'] else 'inactive'}")
+    
+    return jsonify({
+        'success': True,
+        'message': f'Room {room_id} updated successfully',
+        'changes': changes
+    })
 
 #Run server
 if __name__=='__main__':
