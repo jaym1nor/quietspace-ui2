@@ -479,7 +479,7 @@ Edited and updated to have functionality with other parts of the project by Make
                     if (data.success && data.rooms.length > 0) {
                         dynamicRoomsGrid.innerHTML = '';
                         data.rooms.forEach(room => {
-                            const roomNum = room.name.replace(/^\D+/g, '');
+                            const roomNum = room.name.replace(/^\D+/g, ''); // We only want the room number, nothing else.
                             const card = document.createElement('div');
                             card.className = 'card';
                             card.id = `card-${roomNum}`; // Begin making the element for the new room.

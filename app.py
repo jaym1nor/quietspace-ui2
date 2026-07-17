@@ -61,7 +61,8 @@ def staff_dashboard_data():
     # Returns recent alerts and reports from MongoDB for the staff dashboard.
     recent = list(
         noise_reports()
-        .find({}, {"_id": 1, "room_name": 1, "source": 1, "status": 1,
+        .find({"resolved" : {"$ne": True}}, # This small update now only shows unresolved reports on the dashboard now.
+                {"_id": 1, "room_name": 1, "source": 1, "status": 1,
                    "noise_type": 1, "severity": 1, "reported_at": 1})
         .sort("reported_at", -1)
         .limit(50)
