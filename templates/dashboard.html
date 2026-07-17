@@ -387,11 +387,12 @@ Edited and updated to have functionality with other parts of the project by Make
                             <th>Noise Classification</th>
                             <th>Description / Additional Details</th>
                             <th>Time Received</th>
+                            <th>Verification</th>
                         </tr>
                     </thead>
                     <tbody id="studentReportsBody">
                         <tr id="student-placeholder">
-                            <td colspan="4" style="text-align: center; color: #888; font-style: italic;">Waiting for
+                            <td colspan="5" style="text-align: center; color: #888; font-style: italic;">Waiting for
                                 anonymous forms entries...</td>
                         </tr>
                     </tbody>
@@ -569,8 +570,8 @@ Edited and updated to have functionality with other parts of the project by Make
             <td><span class="status-badge ${stateClass}">${statusVal}</span></td>
             <td>${timestamp}</td>
             <td>
-                <button onclick="resolveReport('${data._id}')" style="background:#4caf50; padding:4px 8px; font-size:11px; margin-bottom:0;">Resolve</button>
-                <button onclick="deleteReport('${data._id}')" style="background:#f44336; padding:4px 8px; font-size:11px; margin-bottom:0;">Delete</button>
+                <button onclick="resolveReport('${data.id}')" style="background:#4caf50; padding:4px 8px; font-size:11px; margin-bottom:0;">Resolve</button>
+                <button onclick="deleteReport('${data.id}')" style="background:#f44336; padding:4px 8px; font-size:11px; margin-bottom:0;">Delete</button>
             </td>
         `;
             automatedLogBody.prepend(tr); // Append it to the automated report table.
@@ -583,11 +584,23 @@ Edited and updated to have functionality with other parts of the project by Make
             const timestamp = new Date(data.timestamp).toLocaleTimeString();
             const tr = document.createElement('tr');
             tr.id = `report-row-${data._id}`; // Get the neeeded info and begin making the element.
+
+            let verificationBadge = '';
+            const state = data.actual_noise_state;
+            if (state === 'red' || state === 'yellow') {
+                verificationBadge = '<span class="status-badge status-green">Verified</span>';
+            } else if (state === 'green') {
+                verificationBadge = '<span class="status-badge status-red">Contradictory</span>';
+            } else {
+                verificationBadge = '<span class="status-badge" style="background:#eee;color:#888;">Pending</span>';
+            }
+            
             tr.innerHTML = `
             <td><b>Room ${data.room}</b></td>
             <td><span class="status-badge status-yellow">${(data.noiseType || 'REPORT').replace('_', ' ')}</span></td>
             <td><i>${data.details || 'No extended description added.'}</i></td>
             <td>${timestamp}</td>
+            <td>${verificationBadge}</td>
             <td>
                 <button onclick="resolveReport('${data._id}')" style="background:#4caf50; padding:4px 8px; font-size:11px; margin-bottom:0;">Resolve</button>
                 <button onclick="deleteReport('${data._id}')" style="background:#f44336; padding:4px 8px; font-size:11px; margin-bottom:0;">Delete</button>

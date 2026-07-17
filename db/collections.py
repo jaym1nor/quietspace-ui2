@@ -34,6 +34,7 @@ ROOMS_VALIDATOR = {
             "capacity":   {"bsonType": ["int", "null"]},
             "tags":       {"bsonType": "array"},
             "created_at": {"bsonType": "date"},
+            "nearby_rooms": {"bsonType": "array", "items": {"bsonType": "string"}},
         },
     }
 }
@@ -55,6 +56,7 @@ NOISE_REPORTS_VALIDATOR = {
             "resolved":      {"bsonType": "bool"},
             "resolved_by":   {"bsonType": ["objectId", "null"]},
             "resolved_at":   {"bsonType": ["date", "null"]},
+            "actual_noise_state": {"bsonType": "string", "enum": ["green", "yellow", "red", "unknown"]},
         },
     }
 }
@@ -96,3 +98,21 @@ def rooms():
 
 def noise_reports():
     return get_db().noise_reports
+
+def get_nearby_rooms(room_id):
+    room = rooms().find_one({"name": room_id})
+    return room.get("nearby_rooms", []) if room else []
+
+def update_nearby_rooms(room_id, nearby_list):
+    current = get_nearby_rooms(room_id)
+    
+    #add or subtract new rooms to/from the current list the list first 
+    for room in [r for r in nearby_list if r not in current]:
+        rooms().update_one({"name": room}, {"$addToSet": {"nearby_rooms": room_id}})
+    for room in [r for r in current if r not in nearby_list]:
+        rooms().update_one({"name": room}, {"$pull": {"nearby_rooms": room_id}})
+        
+    #update the room itself
+    rooms().update_one({"name": room_id}, {"$set": {"nearby_rooms": nearby_list}})
+    
+        

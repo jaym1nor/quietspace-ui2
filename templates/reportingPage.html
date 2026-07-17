@@ -241,7 +241,13 @@ Updated by Makell Williams with some slight help from Google Gemini to get use t
         <div class="form-group">
           <label for="roomDisplay">Study Room</label>
           <input type="text" id="roomDisplay" readonly />
-          <input type="hidden" id="roomValue" name="room" />
+        </div>
+
+        <div class="form-group">
+          <label for="roomSelect">Which room is noisy?</label>
+          <select id="roomSelect" name="room" required>
+            <option value="">Loading nearby rooms...</option>
+          </select>
         </div>
 
         <div class="form-group">
@@ -305,15 +311,48 @@ Updated by Makell Williams with some slight help from Google Gemini to get use t
 
     const room = getRoomFromURL();
     const roomDisplay = document.getElementById("roomDisplay");
-    const roomValue = document.getElementById("roomValue");
     const noiseType = document.getElementById("noiseType");
     const otherNoiseGroup = document.getElementById("otherNoiseGroup");
     const otherNoiseDetails = document.getElementById("otherNoiseDetails");
     const form = document.getElementById("noiseReportForm");
     const successMessage = document.getElementById("successMessage");
+    const roomSelect = document.getElementById("roomSelect");
 
     roomDisplay.value = `Study Room ${room}`;
-    roomValue.value = room;
+    
+    // Load nearby rooms
+    fetch(`/api/rooms`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.rooms) {
+                const currentRoom = data.rooms.find(r => r.name === `Study Room ${room}`);
+                
+                let roomOptions = [`Study Room ${room}`];
+                
+                if (currentRoom && currentRoom.nearby_rooms) {
+                    currentRoom.nearby_rooms.forEach(r => {
+                        if (!roomOptions.includes(r)) {
+                            roomOptions.push(r);
+                        }
+                    });
+                }
+                
+                roomSelect.innerHTML = '';
+                
+                roomOptions.forEach(roomName => {
+                    const option = document.createElement('option');
+                    option.value = roomName;
+                    option.textContent = roomName;
+                    roomSelect.appendChild(option);
+                });
+            } else {
+                roomSelect.innerHTML = `<option value="">No rooms available</option>`;
+            }
+        })
+        .catch(err => {
+            console.error('Error loading rooms:', err);
+            roomSelect.innerHTML = `<option value="">Error loading rooms</option>`;
+        });
 
     noiseType.addEventListener("change", function () {
       if (noiseType.value === "other") {
@@ -326,24 +365,49 @@ Updated by Makell Williams with some slight help from Google Gemini to get use t
       }
     });
 
-    form.addEventListener("submit", function (event) {
+    form.addEventListener("submit", async function (event) {
       event.preventDefault();
 
+      const details = document.getElementById("details").value;
+      const otherDetails = otherNoiseDetails.value;
+      const fullText = details + ' ' + otherDetails;
+
+      // --- Profanity check ---
+      try {
+        const res = await fetch('https://vector.profanity.dev', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: fullText })
+        });
+
+        const data = await res.json();
+        
+        if (data.isProfanity) {
+            alert('Your report contains inappropriate language. Please revise.');
+            return;
+        }
+      } catch (error) {
+        console.error('Profanity check failed:', error);
+        alert('Unable to verify language. Please try again.');
+        return;
+      }
+      // --- End profanity check ---
+
       const formData = {
-        room: roomValue.value,
-        noiseType: noiseType.value,
-        otherNoiseDetails: otherNoiseDetails.value,
-        details: document.getElementById("details").value
+          room: roomSelect.value,
+          reporter_room: room,
+          noiseType: noiseType.value,
+          severity: document.getElementById("severity").value,
+          otherNoiseDetails: otherDetails,
+          details: details
       };
 
-
       socket.emit('submit_report', formData); // Send the report data to the Python server in real time!
-
       console.log("Noise report submitted:", formData);
 
+      successMessage.style.display = "none";
       form.reset();
       roomDisplay.value = `Study Room ${room}`;
-      roomValue.value = room;
       otherNoiseGroup.classList.add("hidden");
       otherNoiseDetails.required = false;
       successMessage.style.display = "block";
