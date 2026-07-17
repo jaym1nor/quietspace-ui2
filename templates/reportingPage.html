@@ -245,6 +245,13 @@ Updated by Makell Williams with some slight help from Google Gemini to get use t
         </div>
 
         <div class="form-group">
+          <label for="roomSelect">Which room is noisy?</label>
+          <select id="roomSelect" name="room" required>
+            <option value="">Loading nearby rooms...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
           <label for="noiseType">Type of Noise</label>
           <select id="noiseType" name="noiseType" required>
             <option value="">Select a noise type</option>
@@ -305,15 +312,15 @@ Updated by Makell Williams with some slight help from Google Gemini to get use t
 
     const room = getRoomFromURL();
     const roomDisplay = document.getElementById("roomDisplay");
-    const roomValue = document.getElementById("roomValue");
     const noiseType = document.getElementById("noiseType");
     const otherNoiseGroup = document.getElementById("otherNoiseGroup");
     const otherNoiseDetails = document.getElementById("otherNoiseDetails");
     const form = document.getElementById("noiseReportForm");
     const successMessage = document.getElementById("successMessage");
+    const roomSelect = document.getElementById("roomSelect");
 
     roomDisplay.value = `Study Room ${room}`;
-    roomValue.value = room;
+    
 
     noiseType.addEventListener("change", function () {
       if (noiseType.value === "other") {
@@ -330,7 +337,8 @@ Updated by Makell Williams with some slight help from Google Gemini to get use t
       event.preventDefault();
 
       const formData = {
-        room: roomValue.value,
+        room: roomSelect.value,
+        reporter_room: room,
         noiseType: noiseType.value,
         otherNoiseDetails: otherNoiseDetails.value,
         details: document.getElementById("details").value
