@@ -9,6 +9,7 @@ Made it work more as a template for many different rooms and to be able to apply
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QuietSpace - Room Noise Display</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -156,6 +157,13 @@ Made it work more as a template for many different rooms and to be able to apply
       border-radius: 16px;
       padding: 8px;
       flex-shrink: 0;
+    }
+
+    .qr-image img,
+    .qr-image canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
     }
 
     button {
@@ -319,7 +327,7 @@ Made it work more as a template for many different rooms and to be able to apply
             Scan the QR code to submit a room-specific noise report.
           </div>
         </div>
-        <img src="{{ url_for('static', filename='testqrcode.png') }}" alt="QR code" class="qr-image" />
+        <div class="qr-image" id="qrcode"></div>
       </div>
 
       <div class="countdown-card hidden" id="countdownCard">
@@ -402,6 +410,15 @@ Made it work more as a template for many different rooms and to be able to apply
 
     const currentRoomNumber = getRoomFromURL();
     document.getElementById("roomLabel").textContent = `Study Room ${currentRoomNumber}`; // Now room number label should be the proper room's number, not just 311.
+
+    const reportURL = `${window.location.origin}/report?room=${currentRoomNumber}`;
+    new QRCode(document.getElementById("qrcode"), {
+      text: reportURL,
+      width: 130,
+      height: 130,
+      colorDark: "#000000",
+      colorLight: "#ffffff",
+    });
 
     function formatTime(ms) {
       const total = Math.max(0, Math.ceil(ms / 1000));
