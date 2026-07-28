@@ -505,13 +505,13 @@ Edited and updated to have functionality with other parts of the project by Make
             loadHistoricalLogs(); // Pull logs straight out of MongoDB on boot and reload.
         });
 
-        function resolveReport(id) { // Handles marking reports as resolved removing them from the dashboard and database.
+        function resolveReport(id) { // Function used by the dashboard to call server event that allows reports to be marked as resolved.
             if (confirm("Mark this incident log as resolved?")) {
                 socket.emit('resolve_report', { report_id: id });
             }
         }
 
-        function deleteReport(id) { // Handles deleting and removing reports from the dashboard and database.
+        function deleteReport(id) {  // Function used by the dashboard to call server event that allows reports to be deleted.
             if (confirm("Permanently erase this record from MongoDB history?")) {
                 socket.emit('delete_report', { report_id: id });
             }
@@ -573,7 +573,7 @@ Edited and updated to have functionality with other parts of the project by Make
                 <button onclick="resolveReport('${data.id}')" style="background:#4caf50; padding:4px 8px; font-size:11px; margin-bottom:0;">Resolve</button>
                 <button onclick="deleteReport('${data.id}')" style="background:#f44336; padding:4px 8px; font-size:11px; margin-bottom:0;">Delete</button>
             </td>
-        `;
+        `; // Essentially, all of this is the new element that will be made once the report comes in.
             automatedLogBody.prepend(tr); // Append it to the automated report table.
         });
 
@@ -605,7 +605,7 @@ Edited and updated to have functionality with other parts of the project by Make
                 <button onclick="resolveReport('${data._id}')" style="background:#4caf50; padding:4px 8px; font-size:11px; margin-bottom:0;">Resolve</button>
                 <button onclick="deleteReport('${data._id}')" style="background:#f44336; padding:4px 8px; font-size:11px; margin-bottom:0;">Delete</button>
             </td>
-        `;
+        `; // Essentially, all of this is the new element that will be made once the report comes in.
             studentReportsBody.prepend(tr); // Append element to the student report table.
         });
 
@@ -663,7 +663,7 @@ Edited and updated to have functionality with other parts of the project by Make
                                 loadRoomsGrid();
                             }
                         })
-                        .catch(err => {
+                        .catch(err => { // Simple catch for errors
                             roomMessage.textContent = "Network error occured.";
                             console.error(err);
                         });
@@ -684,7 +684,7 @@ Edited and updated to have functionality with other parts of the project by Make
                                 loadRoomsGrid();
                             }
                         })
-                        .catch(err => {
+                        .catch(err => { // Simple catch for errors
                             roomMessage.textContent = "Network error occured.";
                             console.error(err);
                         });
@@ -693,7 +693,7 @@ Edited and updated to have functionality with other parts of the project by Make
         }
 
         function sendNewSettings() { // Function that handles sending dashboard defined settings to the selected room of their choice.
-            const thresholdData = {
+            const thresholdData = { // Payload of data that will be sent over the server to the selected room.
                 room: document.getElementById('targetRoom').value,
                 greenMax: parseInt(document.getElementById('greenMax').value),
                 yellowMax: parseInt(document.getElementById('yellowMax').value),
@@ -702,12 +702,12 @@ Edited and updated to have functionality with other parts of the project by Make
                 noiseCancellation: document.getElementById('noiseCancellation').checked
             };
 
-            if (!thresholdData.room) {
+            if (!thresholdData.room) { // We need a number to find a room.
                 alert("Please declare a targeted room number.");
                 return;
             }
 
-            socket.emit('change_settings', thresholdData);
+            socket.emit('change_settings', thresholdData); // Emit the change over the server, so then settings can be applied.
             alert(`Threshold configuration transmitted for Room ${thresholdData.room}!`);
         }
 
