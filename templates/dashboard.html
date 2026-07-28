@@ -533,7 +533,7 @@ Edited and updated to have functionality with other parts of the project by Make
             const timestamp = new Date(data.timestamp).toLocaleTimeString();
             const mongoId = data.id; // Data id string
 
-            const levelEl = document.getElementById(`level-${roomNum}`);
+            const levelEl = document.getElementById(`level-${roomNum}`); // Various elements of a room that will be seen on the dashboard.
             const timeEl = document.getElementById(`time-${roomNum}`);
             const statusEl = document.getElementById(`status-${roomNum}`);
             const cardEl = document.getElementById(`card-${roomNum}`);
@@ -543,7 +543,7 @@ Edited and updated to have functionality with other parts of the project by Make
                 statusEl.textContent = statusVal;
                 statusEl.className = "status-badge";
 
-                if (statusVal === "QUIET") {
+                if (statusVal === "QUIET") { // If conditional for all the statuses, follows the same logic as the thresholds to maintatin consistency
                     statusEl.classList.add("status-green");
                     if (cardEl) cardEl.style.borderLeftColor = "darkgreen";
                     if (levelEl) levelEl.textContent = "Low";
@@ -647,8 +647,8 @@ Edited and updated to have functionality with other parts of the project by Make
                 return;
             }
 
-            switch (action) { // Updated this to use a switch, now it looks a lot cleaner. Still looks at choosen action to decide wheter to create or delete a room
-                case "Create": // Create is choosen so make a room as needed.
+            switch (action) { // Updated this to use a switch, now it looks a lot cleaner. Still looks at chosen action to decide wheter to create or delete a room
+                case "Create": // Create is chosen so make a room as needed.
                     endpoint = '/api/rooms/create';
                     fetch(endpoint, {
                         method: 'POST', // Use the appropriate method, in this case POST to create.
@@ -668,7 +668,7 @@ Edited and updated to have functionality with other parts of the project by Make
                             console.error(err);
                         });
                     break;
-                case "Delete": // Delete is choosen so make a room as needed.
+                case "Delete": // Delete is chosen so make a room as needed.
                     endpoint = '/api/rooms/delete';
                     fetch(endpoint, {
                         method: 'DELETE', // Use the appropriate method, in this case DELETE to delete.

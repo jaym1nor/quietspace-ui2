@@ -187,7 +187,7 @@ def handle_change_settings(data):
 def handle_room_ping(data):
     room_states[data.get('room')] = data.get('status').lower()
     # Log it locally if you want to verify, or leave it quiet to avoid terminal clutter
-    print(f"Heartbeat: Room {data.get('room')} is currently {data.get('status')} (Level: {data.get('level')})")
+    print(f"Ping: Room {data.get('room')} is currently {data.get('status')} (Level: {data.get('level')})")
 
     payload = { # Get this info down here...
         'room': data.get('room'),
